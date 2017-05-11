@@ -6809,6 +6809,44 @@ cdef class SCDGroundTruthComparison(Algorithm):
 		"""
 		return (<_SCDGroundTruthComparison*>(self._this)).getAverageRecall()
 
+cdef extern from "cpp/scd/SetConductance.h":
+	cdef cppclass _SetConductance "NetworKit::SetConductance"(_Algorithm):
+		_SetConductance(_Graph G, set[node]) except +
+		double getConductance() except +
+
+cdef class SetConductance(Algorithm):
+	"""
+	This class calculates the conductance of a set of nodes, i.e., the weight of all edges
+	between the set and the rest of the graph divided by the minimum
+	of the volume (the sum of the weighted degrees) of the community and the rest
+	of the graph.
+
+	Parameters:
+	-----------
+	G : Graph
+		The graph to calculate the conductance on
+	community : set
+		The set of nodes to calculate the conductance of
+	"""
+
+	cdef Graph _G
+	cdef set[node] _community
+
+	def __cinit__(self, Graph G not None, set[node] community):
+		self._community = community
+		self._G = G
+		self._this = new _SetConductance(G._this, self._community)
+
+	def getConductance(self):
+		"""
+		Get the calculated conductance score.
+
+		Returns
+		-------
+		The conductance.
+		"""
+		return (<_SetConductance*>(self._this)).getConductance()
+
 # Module: clique
 
 cdef extern from "cpp/clique/MaxClique.h":
