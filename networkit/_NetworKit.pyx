@@ -6709,9 +6709,6 @@ cdef extern from "cpp/scd/SCDGroundTruthComparison.h":
 		double getAverageRecall() except +
 
 cdef class SCDGroundTruthComparison(Algorithm):
-	cdef Graph _G
-	cdef Cover _groundTruth
-	cdef map[node, set[node]] _found
 	"""
 	This class evaluates a set found communities against a ground truth cover. Each found community
 	is compared against the communities of the seed node in the ground truth cover.
@@ -6746,6 +6743,10 @@ cdef class SCDGroundTruthComparison(Algorithm):
 	ignoreSeeds : bool
 		If the seed values shall be ignored, i.e. if any ground truth community is a match
 	"""
+	cdef Graph _G
+	cdef Cover _groundTruth
+	cdef map[node, set[node]] _found
+
 	def __cinit__(self, Graph G not None, Cover groundTruth not None, map[node, set[node]] found, bool ignoreSeeds):
 		self._found = found
 		self._G = G
