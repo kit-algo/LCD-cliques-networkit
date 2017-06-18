@@ -46,66 +46,63 @@ namespace NetworKit {
 				throw std::runtime_error("Error, the graph does not contain the seed node " + std::to_string(seed));
 			}
 
-			if (foundSizes[seed] > 0) {
-				handler.assureRunning();
-				overlap.clear();
+			overlap.clear();
 
-				const auto& foundNodes = found_it.second;
+			const auto& foundNodes = found_it.second;
 
-				auto allowedSubsets = groundTruth.subsetsOf(seed);
+			auto allowedSubsets = groundTruth.subsetsOf(seed);
 
-				for (node u : foundNodes) {
-					if (G.hasNode(u)) {
-						for (index s : groundTruth[u]) {
-							if (ignoreSeeds || allowedSubsets.count(s) > 0) {
-								++overlap[s];
-							}
+			for (node u : foundNodes) {
+				if (G.hasNode(u)) {
+					for (index s : groundTruth[u]) {
+						if (ignoreSeeds || allowedSubsets.count(s) > 0) {
+							++overlap[s];
 						}
-
-					}
-				}
-
-				double bestJaccard = 0;
-				double bestF1 = 0;
-				double bestPrecision = 0;
-				double bestRecall = 0;
-
-				for (auto o : overlap) {
-					double currentj = o.second * 1.0 / (foundSizes[seed] + truthSizes[o.first] - overlap[o.first]);
-
-					double recall = o.second * 1.0 / truthSizes[o.first];
-					double precision = o.second * 1.0 / foundSizes[seed];
-
-					double currentf1 = 0;
-					if (precision > 0 && recall > 0) {
-						currentf1 = 2 * (precision * recall) / (precision + recall);
-					}
-
-					if (currentj > bestJaccard) {
-						bestJaccard = currentj;
-					}
-
-					if (currentf1 > bestF1) {
-						bestF1 = currentf1;
-					}
-
-					if (recall > bestRecall) {
-						bestRecall = recall;
-					}
-
-					if (precision > bestPrecision) {
-						bestPrecision = precision;
 					}
 
 				}
+			}
 
-				jaccardScores[seed] = bestJaccard;
-				f1Scores[seed] = bestF1;
-				precisionScores[seed] = bestPrecision;
-				recallScores[seed] = bestRecall;
+			handler.assureRunning();
 
+			double bestJaccard = 0;
+			double bestF1 = 0;
+			double bestPrecision = 0;
+			double bestRecall = 0;
+
+			for (auto o : overlap) {
+				double currentj = o.second * 1.0 / (foundSizes[seed] + truthSizes[o.first] - overlap[o.first]);
+
+				double recall = o.second * 1.0 / truthSizes[o.first];
+				double precision = o.second * 1.0 / foundSizes[seed];
+
+				double currentf1 = 0;
+				if (precision > 0 && recall > 0) {
+					currentf1 = 2 * (precision * recall) / (precision + recall);
+				}
+
+				if (currentj > bestJaccard) {
+					bestJaccard = currentj;
+				}
+
+				if (currentf1 > bestF1) {
+					bestF1 = currentf1;
+				}
+
+				if (recall > bestRecall) {
+					bestRecall = recall;
+				}
+
+				if (precision > bestPrecision) {
+					bestPrecision = precision;
+				}
 
 			}
+
+			jaccardScores[seed] = bestJaccard;
+			f1Scores[seed] = bestF1;
+			precisionScores[seed] = bestPrecision;
+			recallScores[seed] = bestRecall;
 		}
 
 		handler.assureRunning();
