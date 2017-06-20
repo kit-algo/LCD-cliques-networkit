@@ -38,10 +38,13 @@ void ApproximatePageRank::push(node u, std::queue<node>& activeNodes) {
 	}
 }
 
-std::vector<std::pair<node, double>> ApproximatePageRank::run(node seed) {
-	pr_res[seed] = std::pair<double, double>(0.0, 1.0);
+std::vector<std::pair<node, double>> ApproximatePageRank::run(const std::set<node>& seeds) {
+	double init_res = 1.0 / seeds.size();
 	std::queue<node> activeNodes;
-	activeNodes.push(seed);
+	for (node s : seeds) {
+		pr_res[s] = std::pair<double, double>(0.0, init_res);
+		activeNodes.push(s);
+	}
 
 	while (!activeNodes.empty()) {
 		node v =  activeNodes.front();

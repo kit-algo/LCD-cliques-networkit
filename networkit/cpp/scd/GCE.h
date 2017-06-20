@@ -29,14 +29,15 @@ public:
 	GCE(const Graph& G, std::string objective);
 
 
-	std::map<node, std::set<node> >  run(const std::set<node>& seeds) override;
-
 	/**
-	 * @param[in]	s	seed node
+	 * @param[in]	seeds	seed nodes
 	 *
 	 * @param[out]		community as a set of nodes
 	 */
-	std::set<node> expandSeed(node s);
+	std::set<node> expandOneCommunity(const std::set<node>& s) override;
+
+	// inherit method from parent class.
+	using SelectiveCommunityDetector::expandOneCommunity;
 
 protected:
 
