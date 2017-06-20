@@ -1,2 +1,2 @@
 # extension imports
-from _NetworKit import PageRankNibble, GCE, SCDGroundTruthComparison, SetConductance, CliqueDetect, LFMLocal, CombinedSCD, RandomBFS
+from _NetworKit import PageRankNibble, GCE, SCDGroundTruthComparison, SetConductance, CliqueDetect, LFMLocal, CombinedSCD, RandomBFS, TwoPhaseL
