@@ -15,6 +15,7 @@
 namespace NetworKit {
 
 TEST_F(SCDGTest2, testSCD) {
+	Aux::Random::setSeed(23, false);
 	METISGraphReader reader;
 	Graph G = reader.read("input/hep-th.graph");
 	// parameters
@@ -56,6 +57,7 @@ TEST_F(SCDGTest2, testSCD) {
 }
 
 TEST_F(SCDGTest2, testGCE) {
+	Aux::Random::setSeed(23, false);
 	METISGraphReader reader;
 	Graph G = reader.read("input/hep-th.graph");
 
