@@ -7135,6 +7135,25 @@ cdef class SetConductance(Algorithm):
 		"""
 		return (<_SetConductance*>(self._this)).getConductance()
 
+cdef extern from "cpp/scd/CliqueDetect.h":
+	cdef cppclass _CliqueDetect "NetworKit::CliqueDetect"(_SelectiveCommunityDetector):
+		_CliqueDetect(_Graph G) except +
+
+cdef class CliqueDetect(SelectiveCommunityDetector):
+	"""
+	The CliqueDetect algorithm. First finds the largest clique in the seed node's
+	neighborhood.
+
+	The algorithm can handle weighted graphs.
+
+	Parameters:
+	-----------
+	G : graph in which the cut is to be produced
+	"""
+	def __cinit__(self, Graph G):
+		self._G = G
+		self._this = new _CliqueDetect(G._this)
+
 # Module: clique
 
 cdef extern from "cpp/clique/MaxClique.h":
