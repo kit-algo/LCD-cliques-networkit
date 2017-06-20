@@ -2,6 +2,7 @@
 
 #include "../PageRankNibble.h"
 #include "../GCE.h"
+#include "../LFMLocal.h"
 #include "../../community/Modularity.h"
 #include "../../community/Conductance.h"
 #include "../../graph/Graph.h"
@@ -19,7 +20,7 @@ TEST_F(SCDGTest2, testSCD) {
 	METISGraphReader reader;
 	Graph G = reader.read("input/hep-th.graph");
 	// parameters
-	node seed = 50;
+	node seed = 37;
 	std::set<node> seeds = {seed};
 	double alpha = 0.1; // loop (or teleport) probability, changed due to DGleich from: // phi * phi / (225.0 * log(100.0 * sqrt(m)));
 	double epsilon = 1e-5; // changed due to DGleich from: pow(2, exponent) / (48.0 * B);
@@ -28,6 +29,7 @@ TEST_F(SCDGTest2, testSCD) {
 	algorithms.emplace_back(std::make_pair(std::string("PageRankNibble"), std::unique_ptr<SelectiveCommunityDetector>(new PageRankNibble(G, alpha, epsilon))));
 	algorithms.emplace_back(std::make_pair(std::string("GCE L"), std::unique_ptr<SelectiveCommunityDetector>(new GCE(G, "L"))));
 	algorithms.emplace_back(std::make_pair(std::string("GCE M"), std::unique_ptr<SelectiveCommunityDetector>(new GCE(G, "M"))));
+	algorithms.emplace_back(std::make_pair(std::string("LFM"), std::unique_ptr<SelectiveCommunityDetector>(new LFMLocal(G, 0.8))));
 
 	count idBound = G.upperNodeIdBound();
 
@@ -41,7 +43,7 @@ TEST_F(SCDGTest2, testSCD) {
 		EXPECT_GT(cluster.size(), 0u);
 		Partition partition(idBound);
 		partition.allToOnePartition();
-		partition.toSingleton(50);
+		partition.toSingleton(seed);
 		index id = partition[seed];
 		for (auto entry: cluster) {
 			partition.moveToSubset(id, entry);
@@ -49,7 +51,7 @@ TEST_F(SCDGTest2, testSCD) {
 
 		// evaluate result
 		Conductance conductance;
-		double targetCond = 0.4;
+		double targetCond = 0.5;
 		double cond = conductance.getQuality(partition, G);
 		EXPECT_LT(cond, targetCond);
 		INFO("Conductance of ", algIt.first, ": ", cond, "; cluster size: ", cluster.size());
