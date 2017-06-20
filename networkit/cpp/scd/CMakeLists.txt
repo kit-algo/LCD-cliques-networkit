@@ -1,5 +1,6 @@
 networkit_add_module(scd
     ApproximatePageRank.cpp
+    CliqueDetect.cpp
     GCE.cpp
     PageRankNibble.cpp
     SCDGroundTruthComparison.cpp
