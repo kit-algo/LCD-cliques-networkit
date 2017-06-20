@@ -6941,7 +6941,19 @@ cdef class SelectiveCommunityDetector:
 		else:
 			return self._this.expandOneCommunity(<node?>seeds)
 
+cdef extern from "cpp/scd/CombinedSCD.h":
+	cdef cppclass _CombinedSCD "NetworKit::CombinedSCD"(_SelectiveCommunityDetector):
+		_CombinedSCD(_Graph G, _SelectiveCommunityDetector first, _SelectiveCommunityDetector second) except +
 
+cdef class CombinedSCD(SelectiveCommunityDetector):
+	cdef SelectiveCommunityDetector _first
+	cdef SelectiveCommunityDetector _second
+
+	def __cinit__(self, Graph G, SelectiveCommunityDetector first not None, SelectiveCommunityDetector second not None):
+		self._G = G
+		self._first = first
+		self._second = second
+		self._this = new _CombinedSCD(G._this, dereference(first._this), dereference(second._this))
 
 cdef extern from "cpp/scd/PageRankNibble.h":
 	cdef cppclass _PageRankNibble "NetworKit::PageRankNibble"(_SelectiveCommunityDetector):
