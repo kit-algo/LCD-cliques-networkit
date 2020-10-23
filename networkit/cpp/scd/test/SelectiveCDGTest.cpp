@@ -19,9 +19,9 @@
 
 namespace NetworKit {
 
-class SCDGTest2: public testing::Test {};
+class SelectiveCDGTest: public testing::Test {};
 
-TEST_F(SCDGTest2, testRunApproximatePageRank) {
+TEST_F(SelectiveCDGTest, testRunApproximatePageRank) {
     SNAPGraphReader reader;
     auto G = reader.read("./input/wiki-Vote.txt");
 
@@ -29,7 +29,7 @@ TEST_F(SCDGTest2, testRunApproximatePageRank) {
     const auto prVector = apr.run({0});
 }
 
-TEST_F(SCDGTest2, testSCD) {
+TEST_F(SelectiveCDGTest, testSCD) {
     METISGraphReader reader;
     Graph G = reader.read("input/hep-th.graph");
     // parameters
@@ -76,7 +76,7 @@ TEST_F(SCDGTest2, testSCD) {
     }
 }
 
-TEST_F(SCDGTest2, testGCE) {
+TEST_F(SelectiveCDGTest, testGCE) {
     METISGraphReader reader;
     Graph G = reader.read("input/hep-th.graph");
 
@@ -130,7 +130,7 @@ TEST_F(SCDGTest2, testGCE) {
     }
 }
 
-TEST_F(SCDGTest2, testSCDWeighted) {
+TEST_F(SelectiveCDGTest, testSCDWeighted) {
     Aux::Random::setSeed(23, false);
     METISGraphReader reader;
     Graph G = reader.read("input/lesmis.graph");
