@@ -1,5 +1,5 @@
-#ifndef RANDOM_BFS_H
-#define RANDOM_BFS_H
+#ifndef NETWORKIT_SCD_RANDOM_BFS_HPP_
+#define NETWORKIT_SCD_RANDOM_BFS_HPP_
 
 #include <networkit/scd/SelectiveCommunityDetector.hpp>
 #include <networkit/structures/Cover.hpp>
@@ -30,4 +30,4 @@ protected:
 };
 
 } /* namespace NetworKit */
-#endif
+#endif // NETWORKIT_SCD_RANDOM_BFS_HPP_

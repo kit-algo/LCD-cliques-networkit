@@ -1,5 +1,5 @@
-#ifndef TWOPHASEL_H_
-#define TWOPHASEL_H_
+#ifndef NETWORKIT_SCD_TWO_PHASE_L_HPP_
+#define NETWORKIT_SCD_TWO_PHASE_L_HPP_
 
 #include <networkit/scd/SelectiveCommunityDetector.hpp>
 
@@ -37,4 +37,4 @@ public:
 };
 
 } /* namespace NetworKit */
-#endif
+#endif // NETWORKIT_SCD_TWO_PHASE_L_HPP_

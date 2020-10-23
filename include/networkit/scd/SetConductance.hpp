@@ -1,5 +1,5 @@
-#ifndef SET_CONDUCTANCE_H
-#define SET_CONDUCTANCE_H
+#ifndef NETWORKIT_SCD_SET_CONDUCTANCE_HPP_
+#define NETWORKIT_SCD_SET_CONDUCTANCE_HPP_
 
 #include <set>
 
@@ -44,4 +44,4 @@ private:
 
 } // namespace NetworKit
 
-#endif
+#endif // NETWORKIT_SCD_SET_CONDUCTANCE_HPP_

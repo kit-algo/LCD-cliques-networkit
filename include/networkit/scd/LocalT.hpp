@@ -1,5 +1,5 @@
-#ifndef LOCALT_H_
-#define LOCALT_H_
+#ifndef NETWORKIT_SCD_LOCAL_T_HPP_
+#define NETWORKIT_SCD_LOCAL_T_HPP_
 
 #include <networkit/scd/SelectiveCommunityDetector.hpp>
 
@@ -37,4 +37,4 @@ public:
 
 } // namespace NetworKit
 
-#endif /* LOCALT_H_ */
+#endif // NETWORKIT_SCD_LOCAL_T_HPP_

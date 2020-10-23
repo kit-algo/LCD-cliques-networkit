@@ -1,5 +1,5 @@
-#ifndef CLIQUEDETECT_H_
-#define CLIQUEDETECT_H_
+#ifndef NETWORKIT_SCD_CLIQUE_DETECT_HPP_
+#define NETWORKIT_SCD_CLIQUE_DETECT_HPP_
 
 #include <networkit/scd/SelectiveCommunityDetector.hpp>
 
@@ -50,4 +50,4 @@ protected:
 
 } // namespace NetworKit
 
-#endif /* CLIQUEDETECT_H_ */
+#endif // NETWORKIT_SCD_CLIQUE_DETECT_HPP_

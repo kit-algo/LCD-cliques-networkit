@@ -1,5 +1,5 @@
-#ifndef LOCALTIGHTNESSEXPANSION_H_
-#define LOCALTIGHTNESSEXPANSION_H_
+#ifndef NETWORKIT_SCD_LOCAL_TIGHTNESS_EXPANSION_HPP_
+#define NETWORKIT_SCD_LOCAL_TIGHTNESS_EXPANSION_HPP_
 
 #include <networkit/scd/SelectiveCommunityDetector.hpp>
 
@@ -43,4 +43,4 @@ public:
 
 } // namespace NetworKit
 
-#endif /* TRIANGLEDETECT_H_ */
+#endif // NETWORKIT_SCD_LOCAL_TIGHTNESS_EXPANSION_HPP_

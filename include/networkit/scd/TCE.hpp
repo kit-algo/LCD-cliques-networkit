@@ -1,5 +1,5 @@
-#ifndef TCE_H_
-#define TCE_H_
+#ifndef NETWORKIT_SCD_TCE_HPP_
+#define NETWORKIT_SCD_TCE_HPP_
 
 #include <networkit/scd/SelectiveCommunityDetector.hpp>
 
@@ -38,4 +38,4 @@ public:
 
 } // namespace NetworKit
 
-#endif /* TRIANGLEDETECT_H_ */
+#endif // NETWORKIT_SCD_TCE_HPP_

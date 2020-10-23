@@ -1,5 +1,5 @@
-#ifndef COMBINED_SCD_H
-#define COMBINED_SCD_H
+#ifndef NETWORKIT_SCD_COMBINED_SCD_HPP_
+#define NETWORKIT_SCD_COMBINED_SCD_HPP_
 
 #include <networkit/scd/SelectiveCommunityDetector.hpp>
 
@@ -48,4 +48,4 @@ protected:
 };
 } // namespace NetworKit
 
-#endif
+#endif // NETWORKIT_SCD_COMBINED_SCD_HPP_

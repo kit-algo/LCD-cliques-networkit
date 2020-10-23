@@ -1,5 +1,5 @@
-#ifndef LFMLOCAL_H_
-#define LFMLOCAL_H_
+#ifndef NETWORKIT_SCD_LFM_LOCAL_HPP_
+#define NETWORKIT_SCD_LFM_LOCAL_HPP_
 
 #include <networkit/scd/SelectiveCommunityDetector.hpp>
 
@@ -51,4 +51,4 @@ protected:
 
 } // namespace NetworKit
 
-#endif /* LFMLOCAL_H_ */
+#endif // NETWORKIT_SCD_LFM_LOCAL_HPP_

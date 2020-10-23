@@ -1,5 +1,5 @@
-#ifndef SCD_GROUND_TRUTH_COMPARISON_H
-#define SCD_GROUND_TRUTH_COMPARISON_H
+#ifndef NETWORKIT_SCD_SCD_GROUND_TRUTH_COMPARISON_HPP_
+#define NETWORKIT_SCD_SCD_GROUND_TRUTH_COMPARISON_HPP_
 
 #include <networkit/base/Algorithm.hpp>
 #include <networkit/graph/Graph.hpp>
@@ -118,4 +118,4 @@ private:
 
 } /* namespace NetworKit */
 
-#endif // SCD_GROUND_TRUTH_COMPARISON_H
+#endif // NETWORKIT_SCD_SCD_GROUND_TRUTH_COMPARISON_HPP_

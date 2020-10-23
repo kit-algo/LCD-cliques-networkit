@@ -1,5 +1,5 @@
-#ifndef LOCALCOMMUNITY_H
-#define LOCALCOMMUNITY_H
+#ifndef NETWORKIT_STRUCTURES_LOCAL_COMMUNITY_HPP_
+#define NETWORKIT_STRUCTURES_LOCAL_COMMUNITY_HPP_
 
 #include <set>
 #include <unordered_map>
@@ -251,7 +251,7 @@ public:
 
                 assert(it.second.boundaryChange() == boundary_diff_debug);
             }
-#endif
+#endif // NDEBUG
 
             callback(it.first, it.second);
         }
@@ -299,7 +299,7 @@ public:
                     assert(cit->second.boundaryChange() == boundary_diff_debug);
                 }
             }
-#endif
+#endif // NDEBUG
 
             callback(cit->first, cit->second);
         }
@@ -356,4 +356,4 @@ private:
 
 } // namespace NetworKit
 
-#endif
+#endif // NETWORKIT_STRUCTURES_LOCAL_COMMUNITY_HPP_
