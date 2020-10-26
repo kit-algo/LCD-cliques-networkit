@@ -30,6 +30,7 @@ TEST_F(SelectiveCDGTest, testRunApproximatePageRank) {
 }
 
 TEST_F(SelectiveCDGTest, testSCD) {
+    Aux::Random::setSeed(32, false);
     METISGraphReader reader;
     Graph G = reader.read("input/hep-th.graph");
     // parameters
