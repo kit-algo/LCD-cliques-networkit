@@ -43,7 +43,7 @@ public:
 
 protected:
     template <typename F>
-    std::vector<node> getMaximumWeightClique(const std::vector<node> &nodes, F is_seed) const;
+    std::vector<node> getMaximumWeightClique(const std::vector<node> &nodes, F isSeed) const;
 
     Graph createSubgraphFromNodes(const std::vector<node> &nodes) const;
 };

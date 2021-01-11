@@ -74,7 +74,7 @@ std::set<node> CliqueDetect::expandOneCommunity(const std::set<node> &seeds) {
 
 template <typename F>
 std::vector<node> CliqueDetect::getMaximumWeightClique(const std::vector<node> &nodes,
-                                                       F is_seed) const {
+                                                       F isSeed) const {
     Graph S = createSubgraphFromNodes(nodes);
     std::vector<node> maxClique;
 
@@ -109,7 +109,7 @@ std::vector<node> CliqueDetect::getMaximumWeightClique(const std::vector<node> &
             for (node u : clique) {
                 S.forNeighborsOf(u, [&](node, node v, edgeweight weight) {
                     cliqueWeight += inClique[v] * weight / 2;
-                    cliqueWeight += is_seed(v) * weight;
+                    cliqueWeight += isSeed(v) * weight;
                 });
             }
 
