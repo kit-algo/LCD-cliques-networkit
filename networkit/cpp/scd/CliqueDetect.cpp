@@ -17,12 +17,18 @@ std::set<node> CliqueDetect::expandOneCommunity(node s) {
     std::set<node> result;
     result.insert(s);
 
-    std::vector<node> sn;
-    sn.reserve(G->degree(s));
-    G->forNeighborsOf(s, [&](node v) { sn.push_back(v); });
+    std::vector<node> sn(G->neighborRange(s).begin(), G->neighborRange(s).end());
+    std::vector<edgeweight> neighborWeights;
+    if (G->isWeighted()) {
+        neighborWeights.reserve(sn.size());
+
+        for (auto it : G->weightNeighborRange(s)) {
+            neighborWeights.push_back(it.second);
+        }
+    }
 
     if (!sn.empty()) {
-        for (node u : getMaximumWeightClique(sn, [s](node v) { return v == s; })) {
+        for (node u : getMaximumWeightClique(sn, neighborWeights)) {
             result.insert(sn[u]);
         }
     }
@@ -34,34 +40,50 @@ std::set<node> CliqueDetect::expandOneCommunity(const std::set<node> &seeds) {
     std::set<node> result(seeds);
 
     if (!seeds.empty()) {
-        std::unordered_map<node, count> sn;
-        G->forNeighborsOf(*seeds.begin(), [&](node v) {
+        // Find neighbors of the seeds that are neighbors of all seed nodes
+        // First, candidates are neighbors of the first seed node
+        std::unordered_map<node, std::pair<count, edgeweight>> sn;
+        for (auto neighborIt : G->weightNeighborRange(*seeds.begin())) {
+            node v = neighborIt.first;
+            edgeweight weight = neighborIt.second;
             if (seeds.find(v) == seeds.end()) {
-                sn.insert({v, 1u});
+                sn.insert({v, {1u, weight}});
             }
-        });
-
-        for (auto it = ++seeds.begin(); it != seeds.end(); ++it) {
-            G->forNeighborsOf(*it, [&](node v) {
-                auto it = sn.find(v);
-                if (it != sn.end()) {
-                    ++it->second;
-                }
-            });
         }
 
+        // Count for each neighbor to how many other seed nodes it is adjacent
+        for (auto it = ++seeds.begin(); it != seeds.end(); ++it) {
+            for (auto neighborIt : G->weightNeighborRange(*it)) {
+                node v = neighborIt.first;
+                edgeweight weight = neighborIt.second;
+                auto it = sn.find(v);
+                if (it != sn.end()) {
+                    ++it->second.first;
+                    it->second.second += weight;
+                }
+            }
+        }
+
+        // Take those neighbors that are adjacent to all seed nodes
         std::vector<node> neighbors;
+        std::vector<edgeweight> neighborWeights;
         neighbors.reserve(sn.size());
+        if (G->isWeighted()) {
+            neighborWeights.reserve(sn.size());
+        }
+
         for (auto it : sn) {
-            assert(it.second <= seeds.size() && "Graph has probably multi-edges!");
-            if (it.second == seeds.size()) {
+            assert(it.second.first <= seeds.size() && "Graph has probably multi-edges!");
+            if (it.second.first == seeds.size()) {
                 neighbors.push_back(it.first);
+                if (G->isWeighted()) {
+                    neighborWeights.push_back(it.second.second);
+                }
             }
         }
 
         if (!neighbors.empty()) {
-            const std::vector<node> clique = getMaximumWeightClique(
-                neighbors, [&](node v) { return seeds.find(v) != seeds.end(); });
+            const std::vector<node> clique = getMaximumWeightClique(neighbors, neighborWeights);
 
             for (node u : clique) {
                 result.insert(neighbors[u]);
@@ -72,14 +94,16 @@ std::set<node> CliqueDetect::expandOneCommunity(const std::set<node> &seeds) {
     return result;
 }
 
-template <typename F>
-std::vector<node> CliqueDetect::getMaximumWeightClique(const std::vector<node> &nodes,
-                                                       F isSeed) const {
+std::vector<node>
+CliqueDetect::getMaximumWeightClique(const std::vector<node> &nodes,
+                                     const std::vector<edgeweight> &seedToNodeWeight) const {
+
     Graph S = createSubgraphFromNodes(nodes);
     std::vector<node> maxClique;
 
     Aux::UniformRandomSelector selector;
     if (!G->isWeighted()) {
+        // Select a maximum clique uniformly at random
         MaximalCliques mc(S, [&](const std::vector<node> &clique) {
             if (clique.size() < maxClique.size())
                 return;
@@ -94,6 +118,7 @@ std::vector<node> CliqueDetect::getMaximumWeightClique(const std::vector<node> &
         });
         mc.run();
     } else {
+        // Select a maximum weight clique uniformly at random
         double maxWeight = 0.0;
         assert(S.numberOfNodes() == S.upperNodeIdBound());
         std::vector<bool> inClique(S.upperNodeIdBound(), false);
@@ -107,10 +132,15 @@ std::vector<node> CliqueDetect::getMaximumWeightClique(const std::vector<node> &
             }
 
             for (node u : clique) {
-                S.forNeighborsOf(u, [&](node, node v, edgeweight weight) {
-                    cliqueWeight += inClique[v] * weight / 2;
-                    cliqueWeight += isSeed(v) * weight;
-                });
+                for (auto neighborIt : S.weightNeighborRange(u)) {
+                    cliqueWeight += inClique[neighborIt.first] * neighborIt.second;
+                }
+
+                // Add the weight from u to the seed node(s)
+                cliqueWeight += seedToNodeWeight[u];
+
+                // Reset inClique[u] to avoid counting edges twice
+                inClique[u] = false;
             }
 
             if (cliqueWeight > maxWeight) {
@@ -122,10 +152,6 @@ std::vector<node> CliqueDetect::getMaximumWeightClique(const std::vector<node> &
                     maxClique = clique;
                 }
             }
-
-            for (node u : clique) {
-                inClique[u] = false;
-            }
         });
 
         mc.run();
@@ -135,7 +161,7 @@ std::vector<node> CliqueDetect::getMaximumWeightClique(const std::vector<node> &
 }
 
 Graph CliqueDetect::createSubgraphFromNodes(const std::vector<node> &nodes) const {
-    GraphBuilder gbuilder(nodes.size(), true);
+    GraphBuilder gbuilder(nodes.size(), G->isWeighted());
     std::unordered_map<node, node> reverseMapping;
 
     node i = 0;
@@ -145,11 +171,11 @@ Graph CliqueDetect::createSubgraphFromNodes(const std::vector<node> &nodes) cons
     }
     for (node u : nodes) {
         node lu = reverseMapping[u];
-        G->forNeighborsOf(u, [&](node, node v, edgeweight ew) {
-            auto lv = reverseMapping.find(v);
+        for (auto neighborIt : G->weightNeighborRange(u)) {
+            auto lv = reverseMapping.find(neighborIt.first);
             if (lv != reverseMapping.end())
-                gbuilder.addHalfEdge(lu, lv->second, ew);
-        });
+                gbuilder.addHalfEdge(lu, lv->second, neighborIt.second);
+        }
     }
 
     return gbuilder.toGraph(false);

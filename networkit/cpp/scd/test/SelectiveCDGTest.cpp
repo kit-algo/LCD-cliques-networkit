@@ -7,6 +7,7 @@
 #include <networkit/graph/Graph.hpp>
 #include <networkit/io/METISGraphReader.hpp>
 #include <networkit/io/SNAPGraphReader.hpp>
+#include <networkit/scd/CliqueDetect.hpp>
 #include <networkit/scd/GCE.hpp>
 #include <networkit/scd/LFMLocal.hpp>
 #include <networkit/scd/PageRankNibble.hpp>
@@ -176,5 +177,50 @@ TEST_F(SelectiveCDGTest, testSCDWeighted) {
     }
 }
 
+TEST_F(SelectiveCDGTest, testWeightedCliqueDetect) {
+    Graph G(4, true, false);
+
+    G.addEdge(0, 1, 2);
+    G.addEdge(0, 2, 1);
+
+    CliqueDetect cliqueDetect(G);
+
+    {
+        auto result = cliqueDetect.expandOneCommunity(0);
+        EXPECT_EQ(result.size(), 2);
+        EXPECT_EQ(result.count(0), 1);
+        EXPECT_EQ(result.count(1), 1);
+    }
+
+    G.setWeight(0, 2, 3);
+
+    {
+        auto result = cliqueDetect.expandOneCommunity(0);
+        EXPECT_EQ(result.size(), 2);
+        EXPECT_EQ(result.count(0), 1);
+        EXPECT_EQ(result.count(2), 1);
+    }
+
+    G.setWeight(0, 2, 1);
+    G.addEdge(0, 3, 0.5);
+    G.addEdge(2, 3, 0.4);
+
+    {
+        auto result = cliqueDetect.expandOneCommunity(0);
+        EXPECT_EQ(result.size(), 2);
+        EXPECT_EQ(result.count(0), 1);
+        EXPECT_EQ(result.count(1), 1);
+    }
+
+    G.setWeight(2, 3, 0.6);
+
+    {
+        auto result = cliqueDetect.expandOneCommunity(0);
+        EXPECT_EQ(result.size(), 3);
+        EXPECT_EQ(result.count(0), 1);
+        EXPECT_EQ(result.count(2), 1);
+        EXPECT_EQ(result.count(3), 1);
+    }
+}
 
 } /* namespace NetworKit */

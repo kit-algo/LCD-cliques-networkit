@@ -6,10 +6,14 @@
 namespace NetworKit {
 
 /**
- * The CliqueDetect algorithm. First finds the largest clique in the seed node's
- * neighborhood.
+ * The CliqueDetect algorithm. It finds the largest clique in the seed node's neighborhood.
  *
- * The algorithm can handle weighted graphs.
+ * The algorithm can handle weighted graphs. There, the clique with the highest sum of internal edge
+ * weights is returned. This sum includes edge weights to the seed node(s) to ensure that cliques
+ * that are well-connected to the seed node(s) are preferred.
+ *
+ * See also: Hamann, M.; Röhrs, E.; Wagner, D. Local Community Detection Based on Small Cliques.
+ * Algorithms 2017, 10, 90. https://doi.org/10.3390/a10030090
  */
 class CliqueDetect : public SelectiveCommunityDetector {
 
@@ -42,8 +46,8 @@ public:
     std::set<node> expandOneCommunity(const std::set<node> &seeds) override;
 
 protected:
-    template <typename F>
-    std::vector<node> getMaximumWeightClique(const std::vector<node> &nodes, F isSeed) const;
+    std::vector<node> getMaximumWeightClique(const std::vector<node> &nodes,
+                                             const std::vector<edgeweight> &seedToNodeWeight) const;
 
     Graph createSubgraphFromNodes(const std::vector<node> &nodes) const;
 };
