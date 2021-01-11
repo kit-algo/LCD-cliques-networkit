@@ -15,7 +15,7 @@ namespace NetworKit {
  * In 2014 IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining
  * (ASONAM) (pp. 108–112). https://doi.org/10.1109/ASONAM.2014.6921568
  */
-class LocalT : public NetworKit::SelectiveCommunityDetector {
+class LocalT : public SelectiveCommunityDetector {
 public:
     /**
      * Constructs the Local T algorithm.

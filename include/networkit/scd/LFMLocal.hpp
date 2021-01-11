@@ -24,7 +24,7 @@ namespace NetworKit {
  * give a community containing the whole graph while values larger
  * than 2 recover the smallest communities.
  */
-class LFMLocal : public NetworKit::SelectiveCommunityDetector {
+class LFMLocal : public SelectiveCommunityDetector {
 
 public:
     /**

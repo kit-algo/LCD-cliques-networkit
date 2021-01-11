@@ -11,7 +11,7 @@ namespace NetworKit {
  *
  * The algorithm can handle weighted graphs.
  */
-class CliqueDetect : public NetworKit::SelectiveCommunityDetector {
+class CliqueDetect : public SelectiveCommunityDetector {
 
 public:
     /**

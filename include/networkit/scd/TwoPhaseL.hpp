@@ -15,7 +15,7 @@ namespace NetworKit {
  * In 2009 International Conference on Advances in Social Network Analysis and Mining (pp. 237–242).
  * https://doi.org/10.1109/ASONAM.2009.14
  */
-class TwoPhaseL : public NetworKit::SelectiveCommunityDetector {
+class TwoPhaseL : public SelectiveCommunityDetector {
 
 public:
     /**

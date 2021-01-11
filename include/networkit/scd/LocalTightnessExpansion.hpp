@@ -17,7 +17,7 @@ namespace NetworKit {
  * PLOS ONE, 6(8), e23829.
  * https://doi.org/10.1371/journal.pone.0023829
  */
-class LocalTightnessExpansion : public NetworKit::SelectiveCommunityDetector {
+class LocalTightnessExpansion : public SelectiveCommunityDetector {
 private:
     double alpha;
 

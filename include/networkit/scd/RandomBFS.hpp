@@ -11,7 +11,7 @@ namespace NetworKit {
  * finds a community around a seed node with a given size using a prefix of a
  * BFS order that is selected at random among all possible prefixes.
  */
-class RandomBFS : public NetworKit::SelectiveCommunityDetector {
+class RandomBFS : public SelectiveCommunityDetector {
 
 public:
     RandomBFS(const Graph &G, const Cover &C);

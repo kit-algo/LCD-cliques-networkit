@@ -10,7 +10,7 @@ namespace NetworKit {
  *
  * The algorithm can handle weighted graphs.
  */
-class TCE : public NetworKit::SelectiveCommunityDetector {
+class TCE : public SelectiveCommunityDetector {
 private:
     bool refine;
     bool useJaccard;
