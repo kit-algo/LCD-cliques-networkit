@@ -1,3 +1,4 @@
+// networkit-format
 #include <iterator>
 
 #include <networkit/auxiliary/Random.hpp>

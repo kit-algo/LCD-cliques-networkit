@@ -1,3 +1,4 @@
+// networkit-format
 #include <networkit/auxiliary/UniformRandomSelector.hpp>
 #include <networkit/scd/TwoPhaseL.hpp>
 #include <networkit/structures/LocalCommunity.hpp>

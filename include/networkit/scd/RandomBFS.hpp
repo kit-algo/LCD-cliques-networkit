@@ -1,3 +1,4 @@
+// networkit-format
 #ifndef NETWORKIT_SCD_RANDOM_BFS_HPP_
 #define NETWORKIT_SCD_RANDOM_BFS_HPP_
 

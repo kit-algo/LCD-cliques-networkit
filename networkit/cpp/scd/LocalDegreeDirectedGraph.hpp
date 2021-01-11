@@ -1,3 +1,4 @@
+// networkit-format
 #ifndef NETWORKIT_SCD_LOCALDEGREEDIRECTEDGRAPH_HPP
 #define NETWORKIT_SCD_LOCALDEGREEDIRECTEDGRAPH_HPP
 
@@ -201,14 +202,15 @@ public:
     template <typename F>
     void forTrianglesOf(node u, F callback) {
         forTrianglesOf(
-                       u, [](node, edgeweight) {}, callback);
+            u, [](node, edgeweight) {}, callback);
     }
 
     /**
      * Iterate over all triangles that include the global node @a u
      *
      * @param u The node from which triangles shall be listed
-     * @param initNeighborsCallback The callback to call for every local neighbor (local id) as they are collected
+     * @param initNeighborsCallback The callback to call for every local neighbor (local id) as they
+     * are collected
      * @param triangleCallback The callback to call for each
      * triangle. Must take two node ids of the triangle as well as
      * three edge weights as parameters.

@@ -1,3 +1,4 @@
+// networkit-format
 #include <unordered_map>
 
 #include <networkit/auxiliary/UniformRandomSelector.hpp>

@@ -1,3 +1,4 @@
+// networkit-format
 #include <cmath>
 #include <unordered_map>
 
@@ -7,8 +8,7 @@
 
 namespace NetworKit {
 
-LFMLocal::LFMLocal(const Graph &G, double alpha)
-    : SelectiveCommunityDetector(G), alpha(alpha) {}
+LFMLocal::LFMLocal(const Graph &G, double alpha) : SelectiveCommunityDetector(G), alpha(alpha) {}
 
 std::set<node> LFMLocal::expandOneCommunity(const std::set<node> &seeds) {
     LocalCommunity<true, false, true> community(*G);
