@@ -16,6 +16,6 @@ networkit_add_module(scd
     )
 
 networkit_module_link_modules(scd
-    auxiliary graph)
+    auxiliary clique graph)
 
 add_subdirectory(test)
