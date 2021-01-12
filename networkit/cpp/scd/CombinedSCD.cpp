@@ -3,9 +3,9 @@
 
 namespace NetworKit {
 
-CombinedSCD::CombinedSCD(const Graph &G, SelectiveCommunityDetector &first,
+CombinedSCD::CombinedSCD(const Graph &g, SelectiveCommunityDetector &first,
                          SelectiveCommunityDetector &second)
-    : SelectiveCommunityDetector(G), first(first), second(second) {}
+    : SelectiveCommunityDetector(g), first(first), second(second) {}
 
 std::set<node> CombinedSCD::expandOneCommunity(node s) {
     return second.expandOneCommunity(first.expandOneCommunity(s));

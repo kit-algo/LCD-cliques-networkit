@@ -10,7 +10,7 @@
 
 namespace NetworKit {
 
-LocalT::LocalT(const Graph &G) : SelectiveCommunityDetector(G) {}
+LocalT::LocalT(const Graph &g) : SelectiveCommunityDetector(g) {}
 
 std::set<node> LocalT::expandOneCommunity(const std::set<node> &s) {
     // global data structures
@@ -19,136 +19,135 @@ std::set<node> LocalT::expandOneCommunity(const std::set<node> &s) {
 
     // This algorithm creates a local graph. It contains the community and its shell.
     // stores the sum of the similarities of all nodes to nodes in the community
-    std::vector<double> node_internal_triangles;
-    std::vector<double> node_external_triangles;
-    std::vector<double> node_semi_internal_triangles;
+    std::vector<double> nodeInternalTriangles;
+    std::vector<double> nodeExternalTriangles;
+    std::vector<double> nodeSemiInternalTriangles;
 
     // indicates for every local node if it is in the community (true) or in the shell (false)
-    std::vector<bool> in_result;
+    std::vector<bool> inResult;
 
-    std::vector<bool> in_shell;
+    std::vector<bool> inShell;
 
-    count internal_triangles = 0, external_triangles = 0;
+    count internalTriangles = 0, externalTriangles = 0;
 
     auto addNode = [&](node, node, double) {
-        node_internal_triangles.push_back(0);
-        node_external_triangles.push_back(0);
-        node_semi_internal_triangles.push_back(0);
-        in_result.push_back(false);
-        in_shell.push_back(false);
+        nodeInternalTriangles.push_back(0);
+        nodeExternalTriangles.push_back(0);
+        nodeSemiInternalTriangles.push_back(0);
+        inResult.push_back(false);
+        inShell.push_back(false);
     };
 
-    LocalDegreeDirectedGraph<false, decltype(addNode)> local_graph(*G, addNode);
+    LocalDegreeDirectedGraph<false, decltype(addNode)> localGraph(*g, addNode);
 
     std::unordered_set<node> shell;
 
     auto updateShell = [&](node u) {
-        local_graph.forTrianglesOf(u, [&](node lv, node lw, edgeweight, edgeweight, edgeweight) {
+        localGraph.forTrianglesOf(u, [&](node lv, node lw, edgeweight, edgeweight, edgeweight) {
             // collect counts and compute scores
-            // new completely internal triangle, was not counted previously
-            if (in_result[lv] && in_result[lw]) {
-                ++node_internal_triangles[lv];
-                ++node_internal_triangles[lw];
-                ++internal_triangles;
-            } else if (in_result[lv] || in_result[lw]) {
-                --external_triangles;
+            // new completely internal triangle, was not counted
+            // previously
+            if (inResult[lv] && inResult[lw]) {
+                ++nodeInternalTriangles[lv];
+                ++nodeInternalTriangles[lw];
+                ++internalTriangles;
+            } else if (inResult[lv] || inResult[lw]) {
+                --externalTriangles;
 
-                if (in_result[lv]) {
-                    ++node_internal_triangles[lw];
-                    --node_semi_internal_triangles[lw];
+                if (inResult[lv]) {
+                    ++nodeInternalTriangles[lw];
+                    --nodeSemiInternalTriangles[lw];
                 } else {
-                    ++node_internal_triangles[lv];
-                    --node_semi_internal_triangles[lv];
+                    ++nodeInternalTriangles[lv];
+                    --nodeSemiInternalTriangles[lv];
                 }
             } else {
-                ++external_triangles;
-                if (in_shell[lv]) {
-                    --node_external_triangles[lv];
+                ++externalTriangles;
+                if (inShell[lv]) {
+                    --nodeExternalTriangles[lv];
                 }
-                ++node_semi_internal_triangles[lv];
+                ++nodeSemiInternalTriangles[lv];
 
-                if (in_shell[lw]) {
-                    --node_external_triangles[lw];
+                if (inShell[lw]) {
+                    --nodeExternalTriangles[lw];
                 }
-                ++node_semi_internal_triangles[lw];
+                ++nodeSemiInternalTriangles[lw];
             }
         });
 
-        G->forNeighborsOf(u, [&](node v) {
-            node s = local_graph.ensureNodeExists(v);
+        g->forNeighborsOf(u, [&](node v) {
+            node s = localGraph.ensureNodeExists(v);
 
-            if (!in_shell[s] && !in_result[s]) {
+            if (!inShell[s] && !inResult[s]) {
                 shell.insert(s);
-                in_shell[s] = true;
+                inShell[s] = true;
 
-                local_graph.forTrianglesOf(
-                    local_graph.toGlobal(s),
-                    [&](node lv, node lw, edgeweight, edgeweight, edgeweight) {
-                        if (!in_result[lv] && !in_result[lw]) {
-                            ++node_external_triangles[s];
-                        }
-                    });
+                localGraph.forTrianglesOf(localGraph.toGlobal(s), [&](node lv, node lw, edgeweight,
+                                                                      edgeweight, edgeweight) {
+                    if (!inResult[lv] && !inResult[lw]) {
+                        ++nodeExternalTriangles[s];
+                    }
+                });
             }
         });
 
 #ifndef NDEBUG
-        count debug_external_triangles = 0;
-        count debug_internal_triangles = 0;
+        count debugExternalTriangles = 0;
+        count debugInternalTriangles = 0;
         for (node u : result) {
-            count u_external = 0, u_internal = 0;
-            local_graph.forTrianglesOf(u,
-                                       [&](node lv, node lw, edgeweight, edgeweight, edgeweight) {
-                                           if (in_result[lv] && in_result[lw]) {
-                                               ++u_internal;
-                                           } else if (!in_result[lv] && !in_result[lw]) {
-                                               ++u_external;
-                                           }
-                                       });
+            count uExternal = 0, uInternal = 0;
+            localGraph.forTrianglesOf(u, [&](node lv, node lw, edgeweight, edgeweight, edgeweight) {
+                if (inResult[lv] && inResult[lw]) {
+                    ++uInternal;
+                } else if (!inResult[lv] && !inResult[lw]) {
+                    ++uExternal;
+                }
+            });
 
-            node lu = local_graph.ensureNodeExists(u);
+            node lu = localGraph.ensureNodeExists(u);
 
-            assert(u_internal == node_internal_triangles[lu]);
-            assert(u_internal == node_internal_triangles[lu]);
+            assert(uInternal == nodeInternalTriangles[lu]);
+            assert(uInternal == nodeInternalTriangles[lu]);
 
-            debug_external_triangles += u_external;
-            debug_internal_triangles += u_internal;
+            debugExternalTriangles += uExternal;
+            debugInternalTriangles += uInternal;
         }
 
-        assert(debug_external_triangles == external_triangles);
-        assert(debug_internal_triangles / 3 == internal_triangles);
+        assert(debugExternalTriangles == externalTriangles);
+        assert(debugInternalTriangles / 3 == internalTriangles);
 
         for (node ls : shell) {
-            count s_external = 0, s_internal = 0, s_semi_internal = 0;
-            local_graph.forTrianglesOf(local_graph.toGlobal(ls),
-                                       [&](node lv, node lw, edgeweight, edgeweight, edgeweight) {
-                                           if (in_result[lv] && in_result[lw]) {
-                                               ++s_internal;
-                                           } else if (in_result[lv] || in_result[lw]) {
-                                               ++s_semi_internal;
-                                           } else {
-                                               ++s_external;
-                                           }
-                                       });
+            count sExternal = 0, sInternal = 0, sSemiInternal = 0;
+            localGraph.forTrianglesOf(localGraph.toGlobal(ls),
+                                      [&](node lv, node lw, edgeweight, edgeweight, edgeweight) {
+                                          if (inResult[lv] && inResult[lw]) {
+                                              ++sInternal;
+                                          } else if (inResult[lv] || inResult[lw]) {
+                                              ++sSemiInternal;
+                                          } else {
+                                              ++sExternal;
+                                          }
+                                      });
 
-            assert(s_semi_internal == node_semi_internal_triangles[ls]);
-            assert(s_internal == node_internal_triangles[ls]);
-            assert(s_external == node_external_triangles[ls]);
+            assert(sSemiInternal == nodeSemiInternalTriangles[ls]);
+            assert(sInternal == nodeInternalTriangles[ls]);
+            assert(sExternal == nodeExternalTriangles[ls]);
         }
 #endif
     };
 
     // init community with seed set
     for (node u : s) {
-        node lu = local_graph.ensureNodeExists(u);
+        node lu = localGraph.ensureNodeExists(u);
         result.insert(u);
-        in_result[lu] = true;
+        inResult[lu] = true;
         updateShell(u);
     }
 
-    auto get_score = [](count int_triangles, count ext_triangles) -> count {
+    auto getScore = [](count intTriangles, count extTriangles) -> count {
         return std::max<int64_t>(
-            0, int_triangles
-                   * (static_cast<int64_t>(int_triangles) - static_cast<int64_t>(ext_triangles)));
+            0, intTriangles
+                   * (static_cast<int64_t>(intTriangles) - static_cast<int64_t>(extTriangles)));
     };
 
     // expand (main loop)
@@ -156,32 +155,32 @@ std::set<node> LocalT::expandOneCommunity(const std::set<node> &s) {
     do {
 
         uMax = none;
-        count best_score = get_score(internal_triangles, external_triangles);
-        count best_external_triangles = none;
+        count bestScore = getScore(internalTriangles, externalTriangles);
+        count bestExternalTriangles = none;
 
         for (node lv : shell) {
-            count new_internal_triangles = internal_triangles + node_internal_triangles[lv];
-            count new_external_triangles =
-                external_triangles + node_external_triangles[lv] - node_semi_internal_triangles[lv];
+            count newInternalTriangles = internalTriangles + nodeInternalTriangles[lv];
+            count newExternalTriangles =
+                externalTriangles + nodeExternalTriangles[lv] - nodeSemiInternalTriangles[lv];
 
-            count new_score = get_score(new_internal_triangles, new_external_triangles);
+            count newScore = getScore(newInternalTriangles, newExternalTriangles);
 
-            if (new_score > best_score
-                || (new_score == best_score && new_external_triangles < best_external_triangles)) {
+            if (newScore > bestScore
+                || (newScore == bestScore && newExternalTriangles < bestExternalTriangles)) {
                 uMax = lv;
-                best_score = new_score;
-                best_external_triangles = new_external_triangles;
+                bestScore = newScore;
+                bestExternalTriangles = newExternalTriangles;
             }
         }
 
         if (uMax != none) {
-            node gUMax = local_graph.toGlobal(uMax);
+            node gUMax = localGraph.toGlobal(uMax);
             result.insert(gUMax);
             shell.erase(uMax);
-            in_result[uMax] = true;
+            inResult[uMax] = true;
             updateShell(gUMax);
-            assert(external_triangles == best_external_triangles);
-            assert(get_score(internal_triangles, external_triangles) == best_score);
+            assert(externalTriangles == bestExternalTriangles);
+            assert(getScore(internalTriangles, externalTriangles) == bestScore);
         }
 
     } while (uMax != none);

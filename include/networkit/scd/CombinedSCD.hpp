@@ -24,7 +24,7 @@ public:
      * @param first The first algorithm that is run with the given seed(s).
      * @param secodn The second algorithm that is run with the result of the first algorithm.
      */
-    CombinedSCD(const Graph &G, SelectiveCommunityDetector &first,
+    CombinedSCD(const Graph &g, SelectiveCommunityDetector &first,
                 SelectiveCommunityDetector &second);
 
     /**

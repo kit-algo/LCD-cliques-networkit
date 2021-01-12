@@ -24,7 +24,7 @@ public:
      *
      * @param[in] G The graph to detect communities on
      */
-    CliqueDetect(const Graph &G);
+    CliqueDetect(const Graph &g);
 
     /**
      * Expands a single seed node/vertex into a maximal clique.

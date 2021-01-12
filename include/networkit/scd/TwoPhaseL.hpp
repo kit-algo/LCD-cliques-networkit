@@ -24,7 +24,7 @@ public:
      *
      * @param G The graph on which communities shall be found.
      */
-    TwoPhaseL(const Graph &G);
+    TwoPhaseL(const Graph &g);
 
     /**
      * @param[in]	seeds	seed nodes

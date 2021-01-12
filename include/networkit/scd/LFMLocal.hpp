@@ -34,7 +34,7 @@ public:
      * @param G The graph to find a community on.
      * @param alpha The resolution parameter.
      */
-    LFMLocal(const Graph &G, double alpha = 1.0);
+    LFMLocal(const Graph &g, double alpha = 1.0);
 
     using SelectiveCommunityDetector::expandOneCommunity;
 

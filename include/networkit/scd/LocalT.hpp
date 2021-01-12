@@ -23,7 +23,7 @@ public:
      *
      * @param[in] G The graph to detect communities on
      */
-    LocalT(const Graph &G);
+    LocalT(const Graph &g);
 
     /**
      * Expands a set of seed nodes into a community.

@@ -23,7 +23,7 @@ public:
      * @param G The graph
      * @param community The set of nodes to examine.
      */
-    SetConductance(const Graph &G, const std::set<node> &community);
+    SetConductance(const Graph &g, const std::set<node> &community);
 
     /**
      * Calculate the conductance.
@@ -38,7 +38,7 @@ public:
     double getConductance() const;
 
 private:
-    const Graph *G;
+    const Graph *g;
     const std::set<node> *community;
     double conductance;
 };

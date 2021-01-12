@@ -12,8 +12,8 @@
 
 namespace NetworKit {
 
-TCE::TCE(const Graph &G, bool refine, bool useJaccard)
-    : SelectiveCommunityDetector(G), refine(refine), useJaccard(useJaccard) {}
+TCE::TCE(const Graph &g, bool refine, bool useJaccard)
+    : SelectiveCommunityDetector(g), refine(refine), useJaccard(useJaccard) {}
 
 namespace {
 
@@ -21,12 +21,12 @@ namespace {
 /*
  * @deprecated Only used for debugging.
  */
-double weightedEdgeScore(const Graph &G, node, node v, edgeweight uvWeight, double uDegree,
+double weightedEdgeScore(const Graph &g, node, node v, edgeweight uvWeight, double uDegree,
                          const std::unordered_map<node, double> &uNeighbors, bool useJaccard) {
     double nom = uvWeight;
     double vDegree = 0.0;
 
-    G.forNeighborsOf(v, [&](node, node w, edgeweight vwWeight) {
+    g.forNeighborsOf(v, [&](node, node w, edgeweight vwWeight) {
         vDegree += vwWeight;
         auto uw = uNeighbors.find(w);
         if (uw != uNeighbors.end())
@@ -37,21 +37,21 @@ double weightedEdgeScore(const Graph &G, node, node v, edgeweight uvWeight, doub
         return 0.0;
 
     double denom = useJaccard ? (uDegree + vDegree - nom) : std::min(uDegree, vDegree);
-    return nom / (denom * G.degree(v));
+    return nom / (denom * g.degree(v));
 }
 #endif
 
-template <bool is_weighted>
-std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, bool refine,
-                                      bool useJaccard) {
+template <bool isWeighted>
+std::set<node> expandSeedSetInternal(const Graph &g, const std::set<node> &s, bool refine,
+                                     bool useJaccard) {
     // global data structures
     std::set<node> result = s;
 
-    std::vector<double> weighted_degree;
-    std::vector<double> node_score;
+    std::vector<double> weightedDegrees;
+    std::vector<double> nodeScore;
 
     std::vector<double> cutEdges;
-    std::vector<bool> in_result;
+    std::vector<bool> inResult;
 
     // heap that contains the nodes of the shell that still need to be considered
     class Compare {
@@ -63,66 +63,66 @@ std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, b
         bool operator()(node u, node v) { return similarity[u] > similarity[v]; }
     };
 
-    tlx::d_ary_addressable_int_heap<node, 4, Compare> shell((Compare(node_score)));
+    tlx::d_ary_addressable_int_heap<node, 4, Compare> shell((Compare(nodeScore)));
 
     // data structures only for neighbors of a node
-    std::vector<double> triangle_sum;
+    std::vector<double> triangleSum;
 
-    auto node_added = [&](node, node, double weightedDegree) {
-        weighted_degree.push_back(weightedDegree);
-        node_score.push_back(0);
+    auto nodeAdded = [&](node, node, double weightedDegree) {
+        weightedDegrees.push_back(weightedDegree);
+        nodeScore.push_back(0);
         cutEdges.push_back(0);
 
-        in_result.push_back(false);
-        triangle_sum.push_back(0);
+        inResult.push_back(false);
+        triangleSum.push_back(0);
     };
 
-    LocalDegreeDirectedGraph<is_weighted, decltype(node_added)> localGraph(G, node_added);
+    LocalDegreeDirectedGraph<isWeighted, decltype(nodeAdded)> localGraph(g, nodeAdded);
 
     auto updateShell = [&](node u, node lu, bool noverify) -> double {
 #ifdef NDEBUG
         tlx::unused(noverify); // only used in debug mode
 #endif
-        if (G.degree(u) == 0)
+        if (g.degree(u) == 0)
             return 0.0;
 
-        double xDegree = weighted_degree[lu];
+        double xDegree = weightedDegrees[lu];
 
         localGraph.forTrianglesOf(
-            u, [&](node lv, node y, double weight_uv, double weight_uy, double weight_vy) {
-                if (is_weighted) {
-                    triangle_sum[y] += std::min(weight_uv, weight_vy);
-                    triangle_sum[lv] += std::min(weight_uy, weight_vy);
+            u, [&](node lv, node y, double weightUv, double weightUy, double weightVy) {
+                if (isWeighted) {
+                    triangleSum[y] += std::min(weightUv, weightVy);
+                    triangleSum[lv] += std::min(weightUy, weightVy);
                 } else {
-                    triangle_sum[y] += 1;
-                    triangle_sum[lv] += 1;
+                    triangleSum[y] += 1;
+                    triangleSum[lv] += 1;
                 }
             });
 
 #ifndef NDEBUG
         std::unordered_map<node, double> uNeighbors;
-        G.forNeighborsOf(
+        g.forNeighborsOf(
             u, [&](node, node v, edgeweight ew) { uNeighbors.insert(std::make_pair(v, ew)); });
 #endif
 
         // collect counts and compute scores
         localGraph.forLocalNeighbors([&](node v, edgeweight weight) {
-            if (!in_result[v]) {
-                double nom = weight + triangle_sum[v];
-                double wd = weighted_degree[v];
+            if (!inResult[v]) {
+                double nom = weight + triangleSum[v];
+                double wd = weightedDegrees[v];
 
-                double score_uv = 0.0;
+                double scoreUv = 0.0;
                 if (wd > 0.0) {
                     double denom = useJaccard ? (wd + xDegree - nom) : std::min(wd, xDegree);
-                    score_uv = nom / (denom * G.degree(localGraph.toGlobal(v)));
+                    scoreUv = nom / (denom * g.degree(localGraph.toGlobal(v)));
                 }
 
 #ifndef NDEBUG
-                assert(score_uv
-                       == weightedEdgeScore(G, u, localGraph.toGlobal(v), weight, xDegree,
+                assert(scoreUv
+                       == weightedEdgeScore(g, u, localGraph.toGlobal(v), weight, xDegree,
                                             uNeighbors, useJaccard));
 #endif
-                node_score[v] += score_uv;
+                nodeScore[v] += scoreUv;
                 if (shell.contains(v)) {
                     shell.update(v);
                 } else {
@@ -134,7 +134,7 @@ std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, b
 #ifndef NDEBUG
                 if (!noverify) {
                     double debugWeight = 0;
-                    G.forNeighborsOf(localGraph.toGlobal(v), [&](node, node y, edgeweight ew) {
+                    g.forNeighborsOf(localGraph.toGlobal(v), [&](node, node y, edgeweight ew) {
                         if (result.count(y)) {
                             debugWeight += ew;
                         }
@@ -145,11 +145,11 @@ std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, b
             }
 
             // reset triangle_sum
-            triangle_sum[v] = 0;
+            triangleSum[v] = 0;
         });
 
         assert(
-            std::all_of(triangle_sum.begin(), triangle_sum.end(), [](double s) { return s == 0; }));
+            std::all_of(triangleSum.begin(), triangleSum.end(), [](double s) { return s == 0; }));
 
         return xDegree;
     };
@@ -160,7 +160,7 @@ std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, b
 
     for (auto u : result) {
         node lu = localGraph.ensureNodeExists(u);
-        in_result[lu] = true;
+        inResult[lu] = true;
     }
 
     for (auto u : result) {
@@ -175,7 +175,7 @@ std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, b
     while (!shell.empty()) {
         node uMax = shell.extract_top();
         node gUMax = localGraph.toGlobal(uMax);
-        double uMaxVol = weighted_degree[uMax];
+        double uMaxVol = weightedDegrees[uMax];
 
         double numCutEdgesNew = numCutEdges + uMaxVol - (2 * cutEdges[uMax]);
         double volumeNew = volume + uMaxVol;
@@ -189,7 +189,7 @@ std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, b
             double debugCutsizeNew = 0.0;
 
             for (auto u : result) {
-                G.forEdgesOf(u, [&](node, node v, edgeweight ew) {
+                g.forEdgesOf(u, [&](node, node v, edgeweight ew) {
                     debugVolumeOld += ew;
                     debugVolumeNew += ew;
                     if (!result.count(v)) {
@@ -201,7 +201,7 @@ std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, b
                     }
                 });
             }
-            G.forEdgesOf(gUMax, [&](node, node v, edgeweight ew) {
+            g.forEdgesOf(gUMax, [&](node, node v, edgeweight ew) {
                 debugVolumeNew += ew;
                 if (!result.count(v)) {
                     debugCutsizeNew += ew;
@@ -218,7 +218,7 @@ std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, b
         // if conductance decreases (i.e., improves)
         if ((numCutEdgesNew / volumeNew) < (numCutEdges / volume)) {
             result.insert(gUMax);
-            in_result[uMax] = true;
+            inResult[uMax] = true;
             updateShell(gUMax, uMax, false);
 
             numCutEdges = numCutEdgesNew;
@@ -232,7 +232,7 @@ std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, b
             double uVol = 0;
             double uCutChange = 0;
 
-            G.forNeighborsOf(u, [&](node, node v, edgeweight ew) {
+            g.forNeighborsOf(u, [&](node, node v, edgeweight ew) {
                 uVol += ew;
                 if (result.count(v) > 0) {
                     uCutChange += ew;
@@ -253,7 +253,7 @@ std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, b
                 double debugCutsizeNew = 0.0;
 
                 for (auto v : result) {
-                    G.forEdgesOf(v, [&](node, node x, edgeweight ew) {
+                    g.forEdgesOf(v, [&](node, node x, edgeweight ew) {
                         debugVolumeOld += ew;
                         if (v != u) {
                             debugVolumeNew += ew;
@@ -296,10 +296,10 @@ std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, b
 } // namespace
 
 std::set<node> TCE::expandOneCommunity(const std::set<node> &s) {
-    if (G->isWeighted()) {
-        return expandSeedSet_internal<true>(*G, s, refine, useJaccard);
+    if (g->isWeighted()) {
+        return expandSeedSetInternal<true>(*g, s, refine, useJaccard);
     } else {
-        return expandSeedSet_internal<false>(*G, s, refine, useJaccard);
+        return expandSeedSetInternal<false>(*g, s, refine, useJaccard);
     }
 }
 

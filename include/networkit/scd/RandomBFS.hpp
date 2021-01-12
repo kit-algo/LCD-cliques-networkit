@@ -15,7 +15,7 @@ namespace NetworKit {
 class RandomBFS : public SelectiveCommunityDetector {
 
 public:
-    RandomBFS(const Graph &G, const Cover &C);
+    RandomBFS(const Graph &g, const Cover &c);
 
     /**
      * @param[in]	s	seed node
@@ -26,7 +26,7 @@ public:
     using SelectiveCommunityDetector::expandOneCommunity;
 
 protected:
-    const Cover *C; // ground truth communities
+    const Cover *c; // ground truth communities
     std::map<index, count> subsetSizes;
 };
 

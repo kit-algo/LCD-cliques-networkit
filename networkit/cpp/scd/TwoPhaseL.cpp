@@ -5,14 +5,14 @@
 
 namespace NetworKit {
 
-TwoPhaseL::TwoPhaseL(const Graph &G) : SelectiveCommunityDetector(G) {
-    if (G.numberOfSelfLoops() > 0) {
+TwoPhaseL::TwoPhaseL(const Graph &g) : SelectiveCommunityDetector(g) {
+    if (g.numberOfSelfLoops() > 0) {
         throw std::runtime_error("Graphs with self-loops are not supported in TwoPhaseL");
     }
 }
 
 std::set<node> TwoPhaseL::expandOneCommunity(const std::set<node> &seeds) {
-    LocalCommunity<true, true, true> com(*G);
+    LocalCommunity<true, true, true> com(*g);
 
     for (node s : seeds) {
         com.addNode(s);

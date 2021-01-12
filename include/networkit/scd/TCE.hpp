@@ -24,7 +24,7 @@ public:
      * @param[in] refine If nodes shall be removed again if this makes the community better
      * @param[in] useJaccard use jaccard index for weight calculation.
      */
-    TCE(const Graph &G, bool refine = false, bool useJaccard = false);
+    TCE(const Graph &g, bool refine = false, bool useJaccard = false);
 
     /**
      * Expands a set of seed nodes into a community.

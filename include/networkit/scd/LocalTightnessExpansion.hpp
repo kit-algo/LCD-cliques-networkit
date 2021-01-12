@@ -29,7 +29,7 @@ public:
      * @param[in] G The graph to detect communities on
      * @param[in] alpha Tightness coefficient - smaller values lead to larger communities
      */
-    LocalTightnessExpansion(const Graph &G, double alpha = 1.0);
+    LocalTightnessExpansion(const Graph &g, double alpha = 1.0);
 
     /**
      * Expands a set of seed nodes into a community.

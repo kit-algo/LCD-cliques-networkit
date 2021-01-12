@@ -8,10 +8,10 @@
 
 namespace NetworKit {
 
-LFMLocal::LFMLocal(const Graph &G, double alpha) : SelectiveCommunityDetector(G), alpha(alpha) {}
+LFMLocal::LFMLocal(const Graph &g, double alpha) : SelectiveCommunityDetector(g), alpha(alpha) {}
 
 std::set<node> LFMLocal::expandOneCommunity(const std::set<node> &seeds) {
-    LocalCommunity<true, false, true> community(*G);
+    LocalCommunity<true, false, true> community(*g);
     using shell_info_t = LocalCommunity<true, false, true>::ShellInfo;
     using community_info_t = LocalCommunity<true, false, true>::CommunityInfo;
 
@@ -38,9 +38,9 @@ std::set<node> LFMLocal::expandOneCommunity(const std::set<node> &seeds) {
         // find node with max score
 
         Aux::UniformRandomSelector selector;
-        community.forShellNodes([&](node u, const shell_info_t &u_info) {
-            double uQ = quality(community.internalEdgeWeight() + u_info.intDeg.get(),
-                                community.cut() - u_info.intDeg.get() + u_info.extDeg.get())
+        community.forShellNodes([&](node u, const shell_info_t &uInfo) {
+            double uQ = quality(community.internalEdgeWeight() + uInfo.intDeg.get(),
+                                community.cut() - uInfo.intDeg.get() + uInfo.extDeg.get())
                         - currentQ;
 
             assert(!std::isnan(uQ) && !std::isinf(uQ));
@@ -68,11 +68,11 @@ std::set<node> LFMLocal::expandOneCommunity(const std::set<node> &seeds) {
                 assert(std::abs(currentQ - quality(community.internalEdgeWeight(), community.cut()))
                        < 0.00001);
 
-                community.forCommunityNodes([&](node u, const community_info_t &u_info) {
+                community.forCommunityNodes([&](node u, const community_info_t &uInfo) {
                     double uQ =
                         currentQ
-                        - quality(community.internalEdgeWeight() - u_info.intDeg.get(),
-                                  community.cut() + u_info.intDeg.get() - u_info.extDeg.get());
+                        - quality(community.internalEdgeWeight() - uInfo.intDeg.get(),
+                                  community.cut() + uInfo.intDeg.get() - uInfo.extDeg.get());
 
                     TRACE(u, " diff removal: ", uQ);
 

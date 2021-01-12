@@ -3,8 +3,8 @@
 #include <networkit/scd/SetConductance.hpp>
 
 namespace NetworKit {
-SetConductance::SetConductance(const Graph &G, const std::set<node> &community)
-    : G(&G), community(&community) {}
+SetConductance::SetConductance(const Graph &g, const std::set<node> &community)
+    : g(&g), community(&community) {}
 
 void SetConductance::run() {
     hasRun = false;
@@ -12,27 +12,27 @@ void SetConductance::run() {
     Aux::SignalHandler handler;
 
     double cut = 0;
-    double com_volume = 0;
+    double comVolume = 0;
 
     for (node u : *community) {
-        if (G->hasNode(u)) {
-            G->forEdgesOf(u, [&](node, node v, edgeweight ew) {
+        if (g->hasNode(u)) {
+            g->forEdgesOf(u, [&](node, node v, edgeweight ew) {
                 if (community->count(v) == 0) {
                     cut += ew;
                 }
-                com_volume += ew;
+                comVolume += ew;
             });
         }
     }
 
-    double total_volume = G->totalEdgeWeight() * 2;
+    double totalVolume = g->totalEdgeWeight() * 2;
 
-    double rest_volume = total_volume - com_volume;
+    double restVolume = totalVolume - comVolume;
 
     conductance = 1.0;
 
-    if (com_volume > 0 && rest_volume > 0) {
-        conductance = cut / std::min(com_volume, rest_volume);
+    if (comVolume > 0 && restVolume > 0) {
+        conductance = cut / std::min(comVolume, restVolume);
     }
 
     hasRun = true;

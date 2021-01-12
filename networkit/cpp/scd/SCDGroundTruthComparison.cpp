@@ -4,10 +4,10 @@
 #include <networkit/scd/SCDGroundTruthComparison.hpp>
 
 namespace NetworKit {
-SCDGroundTruthComparison::SCDGroundTruthComparison(const Graph &G, const Cover &groundTruth,
+SCDGroundTruthComparison::SCDGroundTruthComparison(const Graph &g, const Cover &groundTruth,
                                                    const std::map<node, std::set<node>> &found,
                                                    bool ignoreSeeds)
-    : G(&G), groundTruth(&groundTruth), found(&found), ignoreSeeds(ignoreSeeds) {}
+    : g(&g), groundTruth(&groundTruth), found(&found), ignoreSeeds(ignoreSeeds) {}
 
 void SCDGroundTruthComparison::run() {
     Aux::SignalHandler handler;
@@ -20,10 +20,10 @@ void SCDGroundTruthComparison::run() {
     recallScores.clear();
 
     std::vector<std::vector<node>> groundTruthSets(groundTruth->upperBound());
-    std::vector<count> foundSizes(G->upperNodeIdBound(), 0),
+    std::vector<count> foundSizes(g->upperNodeIdBound(), 0),
         truthSizes(groundTruth->upperBound(), 0);
 
-    G->forNodes([&](node u) {
+    g->forNodes([&](node u) {
         for (index s : (*groundTruth)[u]) {
             groundTruthSets[s].emplace_back(u);
             ++truthSizes[s];
@@ -32,7 +32,7 @@ void SCDGroundTruthComparison::run() {
 
     for (const auto &it : *found) {
         for (node u : it.second) {
-            if (G->hasNode(u)) {
+            if (g->hasNode(u)) {
                 ++foundSizes[it.first];
             }
         }
@@ -42,19 +42,19 @@ void SCDGroundTruthComparison::run() {
 
     std::map<index, count> overlap;
 
-    for (const auto &found_it : *found) {
+    for (const auto &foundIt : *found) {
         handler.assureRunning();
 
-        node seed = found_it.first;
+        node seed = foundIt.first;
 
-        if (!ignoreSeeds && !G->hasNode(seed)) {
+        if (!ignoreSeeds && !g->hasNode(seed)) {
             throw std::runtime_error("Error, the graph does not contain the seed node "
                                      + std::to_string(seed));
         }
 
         overlap.clear();
 
-        const auto &foundNodes = found_it.second;
+        const auto &foundNodes = foundIt.second;
 
         std::set<node> allowedSubsets;
 
@@ -63,7 +63,7 @@ void SCDGroundTruthComparison::run() {
         }
 
         for (node u : foundNodes) {
-            if (G->hasNode(u)) {
+            if (g->hasNode(u)) {
                 for (index s : (*groundTruth)[u]) {
                     if (ignoreSeeds || allowedSubsets.count(s) > 0) {
                         ++overlap[s];

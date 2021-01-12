@@ -45,7 +45,7 @@ public:
      * @param found The found communities
      * @param ignoreSeeds If the seeds shall be ignored, i.e. any ground truth community is a match
      */
-    SCDGroundTruthComparison(const Graph &G, const Cover &groundTruth,
+    SCDGroundTruthComparison(const Graph &g, const Cover &groundTruth,
                              const std::map<node, std::set<node>> &found, bool ignoreSeeds = false);
 
     /**
@@ -102,7 +102,7 @@ public:
     double getAverageRecall();
 
 private:
-    const Graph *G;
+    const Graph *g;
     const Cover *groundTruth;
     const std::map<node, std::set<node>> *found;
     bool ignoreSeeds;

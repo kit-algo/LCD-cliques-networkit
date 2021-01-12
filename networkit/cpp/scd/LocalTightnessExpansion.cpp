@@ -12,8 +12,8 @@
 
 namespace NetworKit {
 
-LocalTightnessExpansion::LocalTightnessExpansion(const Graph &G, double alpha)
-    : SelectiveCommunityDetector(G), alpha(alpha) {}
+LocalTightnessExpansion::LocalTightnessExpansion(const Graph &g, double alpha)
+    : SelectiveCommunityDetector(g), alpha(alpha) {}
 
 namespace {
 
@@ -21,12 +21,12 @@ namespace {
 /*
  * @deprecated Only used for debugging.
  */
-double weightedEdgeScore(const Graph &G, node u, node v, edgeweight ew, double uDegree,
+double weightedEdgeScore(const Graph &g, node u, node v, edgeweight ew, double uDegree,
                          const std::unordered_map<node, double> &uNeighbors) {
     double vDegree = 1.0; // w(u, u) = 1 per their definition
     double nom = ew;      // w(v, v) * w(v, u)
 
-    G.forNeighborsOf(v, [&](node, node w, edgeweight vwWeight) {
+    g.forNeighborsOf(v, [&](node, node w, edgeweight vwWeight) {
         vDegree += vwWeight * vwWeight;
         auto uw = uNeighbors.find(w);
         if (uw != uNeighbors.end())
@@ -45,12 +45,12 @@ double weightedEdgeScore(const Graph &G, node u, node v, edgeweight ew, double u
 
 template <typename NodeAddedCallbackType>
 struct InnerNodeAddedCallback {
-    NodeAddedCallbackType node_added_callback;
-    std::vector<double> &triangle_sum;
+    NodeAddedCallbackType nodeAddedCallback;
+    std::vector<double> &triangleSum;
 
-    void operator()(node u, node local_id, double weightedDegree) {
-        node_added_callback(u, local_id, weightedDegree);
-        triangle_sum.push_back(0);
+    void operator()(node u, node localId, double weightedDegree) {
+        nodeAddedCallback(u, localId, weightedDegree);
+        triangleSum.push_back(0);
     }
 };
 
@@ -59,13 +59,13 @@ class LocalGraph
     : public LocalDegreeDirectedGraph<is_weighted, InnerNodeAddedCallback<NodeAddedCallbackType>> {
 private:
     // data structures only for neighbors of a node
-    std::vector<double> triangle_sum;
+    std::vector<double> triangleSum;
 
 public:
-    LocalGraph(const NetworKit::Graph &G, NodeAddedCallbackType node_added_callback)
+    LocalGraph(const NetworKit::Graph &g, NodeAddedCallbackType nodeAddedCallback)
         : LocalDegreeDirectedGraph<is_weighted, InnerNodeAddedCallback<NodeAddedCallbackType>>(
-            G, InnerNodeAddedCallback<NodeAddedCallbackType>{node_added_callback, triangle_sum}) {
-        if (G.isWeighted() != is_weighted) {
+            g, InnerNodeAddedCallback<NodeAddedCallbackType>{nodeAddedCallback, triangleSum}) {
+        if (g.isWeighted() != is_weighted) {
             throw std::runtime_error("Error, weighted/unweighted status of input graph does not "
                                      "match is_weighted template parameter");
         }
@@ -73,43 +73,43 @@ public:
 
     template <typename F>
     void forNeighborsWithTrianglesOf(node u, F callback) {
-        if (this->G.degree(u) == 0)
+        if (this->g.degree(u) == 0)
             return;
 
         this->forTrianglesOf(
-            u, [&](node ln, edgeweight w) { triangle_sum[ln] = 2 * w; },
-            [&](node lv, node y, edgeweight weight_uv, edgeweight weight_uy, edgeweight weight_vy) {
+            u, [&](node ln, edgeweight w) { triangleSum[ln] = 2 * w; },
+            [&](node lv, node y, edgeweight weightUv, edgeweight weightUy, edgeweight weightVy) {
                 if (is_weighted) {
-                    triangle_sum[y] += weight_uv * weight_vy;
-                    triangle_sum[lv] += weight_uy * weight_vy;
+                    triangleSum[y] += weightUv * weightVy;
+                    triangleSum[lv] += weightUy * weightVy;
                 } else {
-                    triangle_sum[y] += 1;
-                    triangle_sum[lv] += 1;
+                    triangleSum[y] += 1;
+                    triangleSum[lv] += 1;
                 }
             });
 
-        this->forLocalNeighbors([&](node v, edgeweight w) { callback(v, w, triangle_sum[v]); });
+        this->forLocalNeighbors([&](node v, edgeweight w) { callback(v, w, triangleSum[v]); });
     }
 };
 
 template <bool is_weighted>
-std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, double alpha) {
+std::set<node> expandSeedSetInternal(const Graph &g, const std::set<node> &s, double alpha) {
     // global data structures
     // result community
     std::set<node> result;
 
     // This algorithm creates a local graph. It contains the community and its shell.
     // stores sqrt{sum_{v \in N(u)} w(u, v)^2} for every local node u
-    std::vector<double> weighted_degree;
+    std::vector<double> weightedDegree;
 
     // stores the sum of the similarities of all nodes to nodes in the community
-    std::vector<double> node_internal_similarity;
-    std::vector<double> node_external_similarity;
+    std::vector<double> nodeInternalSimilarity;
+    std::vector<double> nodeExternalSimilarity;
 
     // indicates for every local node if it is in the community (true) or in the shell (false)
-    std::vector<bool> in_result;
+    std::vector<bool> inResult;
 
-    std::vector<bool> in_shell;
+    std::vector<bool> inShell;
 
     // heap that contains the nodes of the shell that still need to be considered
     class Compare {
@@ -121,90 +121,89 @@ std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, d
         bool operator()(node u, node v) { return similarity[u] > similarity[v]; }
     };
 
-    tlx::d_ary_addressable_int_heap<node, 4, Compare> shell((Compare(node_internal_similarity)));
+    tlx::d_ary_addressable_int_heap<node, 4, Compare> shell((Compare(nodeInternalSimilarity)));
 
-    double internal_similarity = 0;
-    double external_similarity = 0;
+    double internalSimilarity = 0;
+    double externalSimilarity = 0;
 
     auto addNode = [&](node u, node, double) {
         double wd = 1;
         if (is_weighted) {
-            G.forNeighborsOf(u, [&](node, node, edgeweight w) { wd += w * w; });
+            g.forNeighborsOf(u, [&](node, node, edgeweight w) { wd += w * w; });
         } else {
-            wd += G.degree(u);
+            wd += g.degree(u);
         }
 
-        weighted_degree.push_back(std::sqrt(wd));
+        weightedDegree.push_back(std::sqrt(wd));
 
-        node_internal_similarity.push_back(.0);
-        node_external_similarity.push_back(.0);
-        in_result.push_back(false);
-        in_shell.push_back(false);
+        nodeInternalSimilarity.push_back(.0);
+        nodeExternalSimilarity.push_back(.0);
+        inResult.push_back(false);
+        inShell.push_back(false);
     };
 
-    LocalGraph<is_weighted, decltype(addNode)> local_graph(G, addNode);
+    LocalGraph<is_weighted, decltype(addNode)> localGraph(g, addNode);
 
     auto updateShell = [&](node u, node lu) {
 #ifndef NDEBUG
         std::unordered_map<node, double> uNeighbors;
-        G.forNeighborsOf(
+        g.forNeighborsOf(
             u, [&](node, node v, edgeweight ew) { uNeighbors.insert(std::make_pair(v, ew)); });
 
-        if (in_shell[lu]) {
-            double debug_u_external_similarity = .0;
-            double debug_u_internal_similarity = .0;
-            local_graph.forNeighborsWithTrianglesOf(
-                u, [&](node lv, edgeweight, double triangle_sum) {
-                    double score_uv = 0.0;
-                    double denom = weighted_degree[lv] * weighted_degree[lu];
-                    if (denom > 0.0) {
-                        score_uv = triangle_sum / denom;
-                    }
+        if (inShell[lu]) {
+            double debugUExternalSimilarity = .0;
+            double debugUInternalSimilarity = .0;
+            localGraph.forNeighborsWithTrianglesOf(u, [&](node lv, edgeweight, double triangleSum) {
+                double scoreUv = 0.0;
+                double denom = weightedDegree[lv] * weightedDegree[lu];
+                if (denom > 0.0) {
+                    scoreUv = triangleSum / denom;
+                }
 
-                    if (in_result[lv]) {
-                        debug_u_internal_similarity += score_uv;
-                    } else {
-                        debug_u_external_similarity += score_uv;
-                    }
-                });
+                if (inResult[lv]) {
+                    debugUInternalSimilarity += scoreUv;
+                } else {
+                    debugUExternalSimilarity += scoreUv;
+                }
+            });
 
-            assert(std::abs(debug_u_external_similarity - node_external_similarity[lu]) < 0.000001);
-            assert(std::abs(debug_u_internal_similarity - node_internal_similarity[lu]) < 0.000001);
+            assert(std::abs(debugUExternalSimilarity - nodeExternalSimilarity[lu]) < 0.000001);
+            assert(std::abs(debugUInternalSimilarity - nodeInternalSimilarity[lu]) < 0.000001);
         }
 #endif
 
-        std::vector<node> new_shell_nodes;
+        std::vector<node> newShellNodes;
 
-        local_graph.forNeighborsWithTrianglesOf(
-            u, [&](node lv, edgeweight weight, double triangle_sum) {
+        localGraph.forNeighborsWithTrianglesOf(
+            u, [&](node lv, edgeweight weight, double triangleSum) {
                 // collect counts and compute scores
-                double denom = weighted_degree[lv] * weighted_degree[lu];
-                double score_uv = triangle_sum / denom;
+                double denom = weightedDegree[lv] * weightedDegree[lu];
+                double scoreUv = triangleSum / denom;
 
 #ifndef NDEBUG
                 {
-                    double debug_score = weightedEdgeScore(G, u, local_graph.toGlobal(lv), weight,
-                                                           weighted_degree[lu], uNeighbors);
-                    assert(score_uv == debug_score);
+                    double debugScore = weightedEdgeScore(g, u, localGraph.toGlobal(lv), weight,
+                                                          weightedDegree[lu], uNeighbors);
+                    assert(scoreUv == debugScore);
                 }
 #else
             tlx::unused(weight); // needed for assert above
 #endif
 
-                node_internal_similarity[lv] += score_uv;
+                nodeInternalSimilarity[lv] += scoreUv;
 
-                if (in_result[lv]) {
-                    external_similarity -= score_uv;
-                    internal_similarity += 2 * score_uv;
-                    if (!in_shell[lu]) {
-                        node_internal_similarity[lu] += score_uv;
+                if (inResult[lv]) {
+                    externalSimilarity -= scoreUv;
+                    internalSimilarity += 2 * scoreUv;
+                    if (!inShell[lu]) {
+                        nodeInternalSimilarity[lu] += scoreUv;
                     }
-                    node_external_similarity[lv] -= score_uv;
+                    nodeExternalSimilarity[lv] -= scoreUv;
                 } else {
-                    external_similarity += score_uv;
+                    externalSimilarity += scoreUv;
 
-                    if (!in_shell[lu]) {
-                        node_external_similarity[lu] += score_uv;
+                    if (!inShell[lu]) {
+                        nodeExternalSimilarity[lu] += scoreUv;
                     }
 
                     if (shell.contains(lv)) {
@@ -213,26 +212,26 @@ std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, d
                         shell.push(lv);
                     }
 
-                    if (!in_shell[lv]) {
-                        in_shell[lv] = true;
-                        new_shell_nodes.push_back(lv);
+                    if (!inShell[lv]) {
+                        inShell[lv] = true;
+                        newShellNodes.push_back(lv);
                     } else {
-                        node_external_similarity[lv] -= score_uv;
+                        nodeExternalSimilarity[lv] -= scoreUv;
                     }
                 }
             });
 
-        for (node s : new_shell_nodes) {
-            local_graph.forNeighborsWithTrianglesOf(
-                local_graph.toGlobal(s), [&](node lv, edgeweight, double triangle_sum) {
-                    if (!in_result[lv]) {
-                        double score_uv = 0.0;
-                        double denom = weighted_degree[lv] * weighted_degree[s];
+        for (node s : newShellNodes) {
+            localGraph.forNeighborsWithTrianglesOf(
+                localGraph.toGlobal(s), [&](node lv, edgeweight, double triangleSum) {
+                    if (!inResult[lv]) {
+                        double scoreUv = 0.0;
+                        double denom = weightedDegree[lv] * weightedDegree[s];
                         if (denom > 0.0) {
-                            score_uv = triangle_sum / denom;
+                            scoreUv = triangleSum / denom;
                         }
 
-                        node_external_similarity[s] += score_uv;
+                        nodeExternalSimilarity[s] += scoreUv;
                     }
                 });
         }
@@ -240,46 +239,46 @@ std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, d
 
     // init community with seed set
     for (node u : s) {
-        node lu = local_graph.ensureNodeExists(u);
+        node lu = localGraph.ensureNodeExists(u);
         result.insert(u);
-        in_result[lu] = true;
+        inResult[lu] = true;
         updateShell(u, lu);
     }
 
     // expand (main loop)
     while (!shell.empty()) {
         node uMax = shell.extract_top();
-        node gUMax = local_graph.toGlobal(uMax);
+        node gUMax = localGraph.toGlobal(uMax);
 #ifndef NDEBUG
-        double internal_similarity_new = internal_similarity + 2 * node_internal_similarity[uMax];
-        double external_similarity_new =
-            external_similarity - node_internal_similarity[uMax] + node_external_similarity[uMax];
+        double internalSimilarityNew = internalSimilarity + 2 * nodeInternalSimilarity[uMax];
+        double externalSimilarityNew =
+            externalSimilarity - nodeInternalSimilarity[uMax] + nodeExternalSimilarity[uMax];
 
         {
-            double debug_internal_similarity = .0;
-            double debug_external_similarity = .0;
+            double debugInternalSimilarity = .0;
+            double debugExternalSimilarity = .0;
             for (node u : result) {
-                node lu = local_graph.ensureNodeExists(u);
-                debug_internal_similarity += node_internal_similarity[lu];
-                debug_external_similarity += node_external_similarity[lu];
+                node lu = localGraph.ensureNodeExists(u);
+                debugInternalSimilarity += nodeInternalSimilarity[lu];
+                debugExternalSimilarity += nodeExternalSimilarity[lu];
             }
 
-            assert(std::abs(debug_internal_similarity - internal_similarity) < 0.000001);
-            assert(std::abs(debug_external_similarity - external_similarity) < 0.000001);
+            assert(std::abs(debugInternalSimilarity - internalSimilarity) < 0.000001);
+            assert(std::abs(debugExternalSimilarity - externalSimilarity) < 0.000001);
         }
 #endif
 
         // if conductance decreases (i.e., improves)
-        if (external_similarity / internal_similarity
-                - (alpha * node_external_similarity[uMax] - node_internal_similarity[uMax])
-                      / (2 * node_internal_similarity[uMax])
+        if (externalSimilarity / internalSimilarity
+                - (alpha * nodeExternalSimilarity[uMax] - nodeInternalSimilarity[uMax])
+                      / (2 * nodeInternalSimilarity[uMax])
             > 0) {
             result.insert(gUMax);
-            in_result[uMax] = true;
+            inResult[uMax] = true;
             updateShell(gUMax, uMax);
 
-            assert(std::abs(internal_similarity - internal_similarity_new) < 0.000001);
-            assert(std::abs(external_similarity - external_similarity_new) < 0.000001);
+            assert(std::abs(internalSimilarity - internalSimilarityNew) < 0.000001);
+            assert(std::abs(externalSimilarity - externalSimilarityNew) < 0.000001);
         }
     }
     return result;
@@ -288,10 +287,10 @@ std::set<node> expandSeedSet_internal(const Graph &G, const std::set<node> &s, d
 } // namespace
 
 std::set<node> LocalTightnessExpansion::expandOneCommunity(const std::set<node> &s) {
-    if (G->isWeighted()) {
-        return expandSeedSet_internal<true>(*G, s, alpha);
+    if (g->isWeighted()) {
+        return expandSeedSetInternal<true>(*g, s, alpha);
     } else {
-        return expandSeedSet_internal<false>(*G, s, alpha);
+        return expandSeedSetInternal<false>(*g, s, alpha);
     }
 }
 
