@@ -31,9 +31,9 @@ protected:
 
     struct LocalNode {
         /** first index in head where neighbors of the node are stored */
-        std::size_t firstHead;
+        size_t firstHead;
         /** index after the last index in head where neighbors of the node are stored */
-        std::size_t lastHead;
+        size_t lastHead;
     };
 
     // stores for every local node the information where the outgoing neighbors begins and ends

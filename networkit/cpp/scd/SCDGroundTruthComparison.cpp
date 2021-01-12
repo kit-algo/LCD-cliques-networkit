@@ -135,22 +135,22 @@ void SCDGroundTruthComparison::run() {
     hasRun = true;
 }
 
-std::map<NetworKit::index, double> NetworKit::SCDGroundTruthComparison::getIndividualJaccard() {
+std::map<index, double> SCDGroundTruthComparison::getIndividualJaccard() {
     assureFinished();
     return jaccardScores;
 }
 
-std::map<NetworKit::index, double> NetworKit::SCDGroundTruthComparison::getIndividualF1() {
+std::map<index, double> SCDGroundTruthComparison::getIndividualF1() {
     assureFinished();
     return f1Scores;
 }
 
-std::map<NetworKit::index, double> NetworKit::SCDGroundTruthComparison::getIndividualRecall() {
+std::map<index, double> SCDGroundTruthComparison::getIndividualRecall() {
     assureFinished();
     return recallScores;
 }
 
-std::map<NetworKit::index, double> NetworKit::SCDGroundTruthComparison::getIndividualPrecision() {
+std::map<index, double> SCDGroundTruthComparison::getIndividualPrecision() {
     assureFinished();
     return precisionScores;
 }

@@ -62,7 +62,7 @@ private:
     std::vector<double> triangleSum;
 
 public:
-    LocalGraph(const NetworKit::Graph &g, NodeAddedCallbackType nodeAddedCallback)
+    LocalGraph(const Graph &g, NodeAddedCallbackType nodeAddedCallback)
         : LocalDegreeDirectedGraph<is_weighted, InnerNodeAddedCallback<NodeAddedCallbackType>>(
             g, InnerNodeAddedCallback<NodeAddedCallbackType>{nodeAddedCallback, triangleSum}) {
         if (g.isWeighted() != is_weighted) {
