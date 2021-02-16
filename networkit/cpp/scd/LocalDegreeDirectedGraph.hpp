@@ -15,7 +15,7 @@ namespace NetworKit {
  * form in just one direction depending on the node's degrees and
  * thus allows efficient triangle listing.
  */
-template <bool is_weighted, typename NodeAddedCallbackType>
+template <bool IsWeighted, typename NodeAddedCallbackType>
 class LocalDegreeDirectedGraph {
 protected:
     // local to global (input graph) id mapping
@@ -101,7 +101,7 @@ public:
                     ++nDegree;
 
                     head.push_back(it->second);
-                    if (is_weighted) {
+                    if (IsWeighted) {
                         headWeight.push_back(weight);
                     }
 
@@ -113,11 +113,11 @@ public:
             });
 
             assert(myEnd == head.size());
-            assert(!is_weighted || myEnd == headWeight.size());
+            assert(!IsWeighted || myEnd == headWeight.size());
             assert(nh >= myEnd);
 
             head.resize(nh);
-            if (is_weighted) {
+            if (IsWeighted) {
                 headWeight.resize(nh);
             }
 
@@ -126,7 +126,7 @@ public:
             // Iterate over all neighbors in the local graph
             for (index i = myBegin; i < myEnd;) {
                 node ln = head[i];
-                edgeweight weight = is_weighted ? headWeight[i] : 1;
+                edgeweight weight = IsWeighted ? headWeight[i] : defaultEdgeWeight;
 
                 auto &nDegree = degree[ln];
                 auto &nInfo = headInfo[ln];
@@ -142,7 +142,7 @@ public:
                         // Store last neighbor of ln at position ni instead, i.e., remove nn
                         head[ni] = head[--nInfo.lastHead];
 
-                        if (is_weighted) {
+                        if (IsWeighted) {
                             // Copy weight to neighbor list of nn
                             headWeight[headInfo[nn].lastHead] = headWeight[ni];
                             // Copy weight of last neighbor of nn at position ni
@@ -158,7 +158,7 @@ public:
                     ++i;
                 } else {
                     // Add local_id to ln as neighbor instead of adding ln as neighbor here
-                    if (is_weighted) {
+                    if (IsWeighted) {
                         headWeight[nInfo.lastHead] = weight;
                     }
 
@@ -168,7 +168,7 @@ public:
                     --myEnd;
                     // Move the last neighbor at the current position
                     head[i] = head[myEnd];
-                    if (is_weighted) {
+                    if (IsWeighted) {
                         headWeight[i] = headWeight[myEnd];
                     }
 
@@ -181,7 +181,7 @@ public:
 
             isNeighbor.push_back(false);
 
-            if (is_weighted)
+            if (IsWeighted)
                 neighborWeight.push_back(0);
 
             nodeAddedCallback(u, localId, weightedDegree);
@@ -228,7 +228,7 @@ public:
             currentLocalNeighborIds.emplace_back(localId);
             isNeighbor[localId] = true;
 
-            if (is_weighted) {
+            if (IsWeighted) {
                 neighborWeight[localId] = weight;
             }
 
@@ -240,10 +240,10 @@ public:
                 node y = head[ti];
 
                 if (isNeighbor[y]) {
-                    edgeweight weightUv = 1.0;
-                    edgeweight weightUy = 1.0;
-                    edgeweight weightVy = 1.0;
-                    if (is_weighted) {
+                    edgeweight weightUv = defaultEdgeWeight;
+                    edgeweight weightUy = defaultEdgeWeight;
+                    edgeweight weightVy = defaultEdgeWeight;
+                    if (IsWeighted) {
                         weightUv = neighborWeight[lv];
                         weightUy = neighborWeight[y];
                         weightVy = headWeight[ti];
@@ -268,10 +268,10 @@ public:
     template <typename F>
     void forLocalNeighbors(F callback) {
         for (node v : currentLocalNeighborIds) {
-            if (is_weighted) {
+            if (IsWeighted) {
                 callback(v, neighborWeight[v]);
             } else {
-                callback(v, 1.0);
+                callback(v, defaultEdgeWeight);
             }
         }
     }
