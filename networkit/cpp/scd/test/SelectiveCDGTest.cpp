@@ -60,6 +60,8 @@ TEST_F(SelectiveCDGTest, testSCD) {
         std::unique_ptr<SelectiveCommunityDetector>(new LocalTightnessExpansion(G))));
     algorithms.emplace_back(std::make_pair(
         std::string("LocalT"), std::unique_ptr<SelectiveCommunityDetector>(new LocalT(G))));
+    algorithms.emplace_back(std::make_pair(
+        std::string("Clique"), std::unique_ptr<SelectiveCommunityDetector>(new CliqueDetect(G))));
 
     count idBound = G.upperNodeIdBound();
 
@@ -167,6 +169,8 @@ TEST_F(SelectiveCDGTest, testSCDWeighted) {
         std::unique_ptr<SelectiveCommunityDetector>(new LocalTightnessExpansion(G))));
     algorithms.emplace_back(std::make_pair(
         std::string("TCE"), std::unique_ptr<SelectiveCommunityDetector>(new TCE(G))));
+    algorithms.emplace_back(std::make_pair(
+        std::string("Clique"), std::unique_ptr<SelectiveCommunityDetector>(new CliqueDetect(G))));
 
     count idBound = G.upperNodeIdBound();
 

@@ -44,25 +44,21 @@ std::set<node> CliqueDetect::expandOneCommunity(const std::set<node> &seeds) {
         // Find neighbors of the seeds that are neighbors of all seed nodes
         // First, candidates are neighbors of the first seed node
         std::unordered_map<node, std::pair<count, edgeweight>> sn;
-        for (auto neighborIt : g->weightNeighborRange(*seeds.begin())) {
-            node v = neighborIt.first;
-            edgeweight weight = neighborIt.second;
+        g->forNeighborsOf(*seeds.begin(), [&](node v, edgeweight weight) {
             if (seeds.find(v) == seeds.end()) {
                 sn.insert({v, {1u, weight}});
             }
-        }
+        });
 
         // Count for each neighbor to how many other seed nodes it is adjacent
         for (auto it = ++seeds.begin(); it != seeds.end(); ++it) {
-            for (auto neighborIt : g->weightNeighborRange(*it)) {
-                node v = neighborIt.first;
-                edgeweight weight = neighborIt.second;
+            g->forNeighborsOf(*it, [&](node v, edgeweight weight) {
                 auto it = sn.find(v);
                 if (it != sn.end()) {
                     ++it->second.first;
                     it->second.second += weight;
                 }
-            }
+            });
         }
 
         // Take those neighbors that are adjacent to all seed nodes
@@ -172,11 +168,11 @@ Graph CliqueDetect::createSubgraphFromNodes(const std::vector<node> &nodes) cons
     }
     for (node u : nodes) {
         node lu = reverseMapping[u];
-        for (auto neighborIt : g->weightNeighborRange(u)) {
-            auto lv = reverseMapping.find(neighborIt.first);
+        g->forNeighborsOf(u, [&](node v, edgeweight weight) {
+            auto lv = reverseMapping.find(v);
             if (lv != reverseMapping.end())
-                gbuilder.addHalfEdge(lu, lv->second, neighborIt.second);
-        }
+                gbuilder.addHalfEdge(lu, lv->second, weight);
+        });
     }
 
     return gbuilder.toGraph(false);
