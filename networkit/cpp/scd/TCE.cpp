@@ -60,7 +60,7 @@ std::set<node> expandSeedSetInternal(const Graph &g, const std::set<node> &s, bo
     public:
         Compare(const std::vector<double> &similarity) : similarity(similarity) {}
 
-        bool operator()(node u, node v) { return similarity[u] > similarity[v]; }
+        bool operator()(node u, node v) const { return similarity[u] > similarity[v]; }
     };
 
     tlx::d_ary_addressable_int_heap<node, 4, Compare> shell((Compare(nodeScore)));

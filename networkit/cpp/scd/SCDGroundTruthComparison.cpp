@@ -135,42 +135,42 @@ void SCDGroundTruthComparison::run() {
     hasRun = true;
 }
 
-std::map<index, double> SCDGroundTruthComparison::getIndividualJaccard() {
+const std::map<index, double> &SCDGroundTruthComparison::getIndividualJaccard() const {
     assureFinished();
     return jaccardScores;
 }
 
-std::map<index, double> SCDGroundTruthComparison::getIndividualF1() {
+const std::map<index, double> &SCDGroundTruthComparison::getIndividualF1() const {
     assureFinished();
     return f1Scores;
 }
 
-std::map<index, double> SCDGroundTruthComparison::getIndividualRecall() {
+const std::map<index, double> &SCDGroundTruthComparison::getIndividualRecall() const {
     assureFinished();
     return recallScores;
 }
 
-std::map<index, double> SCDGroundTruthComparison::getIndividualPrecision() {
+const std::map<index, double> &SCDGroundTruthComparison::getIndividualPrecision() const {
     assureFinished();
     return precisionScores;
 }
 
-double SCDGroundTruthComparison::getAverageJaccard() {
+double SCDGroundTruthComparison::getAverageJaccard() const {
     assureFinished();
     return averageJaccard;
 }
 
-double SCDGroundTruthComparison::getAverageF1() {
+double SCDGroundTruthComparison::getAverageF1() const {
     assureFinished();
     return averageF1;
 }
 
-double SCDGroundTruthComparison::getAverageRecall() {
+double SCDGroundTruthComparison::getAverageRecall() const {
     assureFinished();
     return averageRecall;
 }
 
-double SCDGroundTruthComparison::getAveragePrecision() {
+double SCDGroundTruthComparison::getAveragePrecision() const {
     assureFinished();
     return averagePrecision;
 }

@@ -140,7 +140,7 @@ TEST_F(SelectiveCDGTest, testGCE) {
 
     // The cluster should only grow
     for (node u : cluster) {
-        EXPECT_TRUE(cluster2.find(u) != cluster2.end());
+        EXPECT_NE(cluster2.find(u), cluster2.end());
     }
 }
 

@@ -35,7 +35,7 @@ namespace NetworKit {
  * For each score, the range of values is between 0 and 1, where 0 is the worst and 1 the best
  * score.
  */
-class SCDGroundTruthComparison : public Algorithm {
+class SCDGroundTruthComparison final : public Algorithm {
 public:
     /**
      * Construct the SCD evaluation for the given graph, ground truth and found communities.
@@ -58,48 +58,48 @@ public:
      *
      * @return A map between seed node and the jaccard index of the seed's community.
      */
-    std::map<index, double> getIndividualJaccard();
+    const std::map<index, double> &getIndividualJaccard() const;
 
     /**
      * Get the precision of every found community.
      *
      * @return A map between seed node and the precision of the seed's community.
      */
-    std::map<index, double> getIndividualPrecision();
+    const std::map<index, double> &getIndividualPrecision() const;
 
     /**
      * Get the recall of every found community.
      *
      * @return A map between seed node and the recall of the seed's community.
      */
-    std::map<index, double> getIndividualRecall();
+    const std::map<index, double> &getIndividualRecall() const;
 
     /**
      * Get the F1 score of every found community.
      *
      * @return A map between seed node and the F1 score of the seed's community.
      */
-    std::map<index, double> getIndividualF1();
+    const std::map<index, double> &getIndividualF1() const;
 
     /**
      * Get the (unweighted) average of the jaccard indices of every found community.
      */
-    double getAverageJaccard();
+    double getAverageJaccard() const;
 
     /**
      * Get the (unweighted) average of the F1 score of every found community.
      */
-    double getAverageF1();
+    double getAverageF1() const;
 
     /**
      * Get the (unweighted) average of the precision of every found community.
      */
-    double getAveragePrecision();
+    double getAveragePrecision() const;
 
     /**
      * Get the (unweighted) average of the recall of every found community.
      */
-    double getAverageRecall();
+    double getAverageRecall() const;
 
 private:
     const Graph *g;

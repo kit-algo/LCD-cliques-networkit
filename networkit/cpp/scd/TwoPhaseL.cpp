@@ -82,7 +82,6 @@ std::set<node> TwoPhaseL::expandOneCommunity(const std::set<node> &seeds) {
             currentLin = 2.0 * com.internalEdgeWeight() / com.size();
             currentLex = com.cut() / com.boundarySize();
             currentL = currentLin / currentLex;
-            // TRACE("community: ", community);
         }
     } while (vMax != none);
 
