@@ -123,12 +123,7 @@ std::set<node> expandSeedSetInternal(const Graph &g, const std::set<node> &s, bo
                                             uNeighbors, useJaccard));
 #endif
                 nodeScore[v] += scoreUv;
-                if (shell.contains(v)) {
-                    shell.update(v);
-                } else {
-                    shell.push(v);
-                }
-
+                shell.update(v);
                 cutEdges[v] += weight;
 
 #ifndef NDEBUG

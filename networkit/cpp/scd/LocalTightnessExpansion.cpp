@@ -206,11 +206,7 @@ std::set<node> expandSeedSetInternal(const Graph &g, const std::set<node> &s, do
                         nodeExternalSimilarity[lu] += scoreUv;
                     }
 
-                    if (shell.contains(lv)) {
-                        shell.update(lv);
-                    } else {
-                        shell.push(lv);
-                    }
+                    shell.update(lv);
 
                     if (!inShell[lv]) {
                         inShell[lv] = true;
