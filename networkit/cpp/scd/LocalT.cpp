@@ -140,6 +140,7 @@ std::set<node> LocalT::expandOneCommunity(const std::set<node> &s) {
     for (node u : s) {
         node lu = localGraph.ensureNodeExists(u);
         result.insert(u);
+        shell.erase(lu);
         inResult[lu] = true;
         updateShell(u);
     }
@@ -174,6 +175,7 @@ std::set<node> LocalT::expandOneCommunity(const std::set<node> &s) {
         }
 
         if (uMax != none) {
+            assert(result.find(uMax) == result.end());
             node gUMax = localGraph.toGlobal(uMax);
             result.insert(gUMax);
             shell.erase(uMax);
