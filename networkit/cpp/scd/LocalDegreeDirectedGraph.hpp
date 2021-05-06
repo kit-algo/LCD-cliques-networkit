@@ -186,6 +186,8 @@ public:
 
             nodeAddedCallback(u, localId, weightedDegree);
 
+            validateEdgesExist();
+
             return localId;
         } else {
             return gtlIt->second;
@@ -257,6 +259,41 @@ public:
         for (node v : currentLocalNeighborIds) {
             isNeighbor[v] = false;
         }
+    }
+
+    void validateEdgesExist() {
+#ifndef NDEBUG
+        g.forNodes([&](node gu) {
+            auto gtlIt = globalToLocalId.find(gu);
+            if (gtlIt != globalToLocalId.end()) {
+                node lu = gtlIt->second;
+
+                g.forNeighborsOf(gu, [&](node gv) {
+                    auto gtlV = globalToLocalId.find(gv);
+                    if (gtlV != globalToLocalId.end()) {
+                        node lv = gtlV->second;
+
+                        bool foundU = false;
+                        for (size_t i = headInfo[lu].firstHead; i < headInfo[lu].lastHead; ++i) {
+                            if (head[i] == lv) {
+                                foundU = true;
+                                break;
+                            }
+                        }
+                        bool foundV = false;
+                        for (size_t i = headInfo[lv].firstHead; i < headInfo[lv].lastHead; ++i) {
+                            if (head[i] == lu) {
+                                foundV = true;
+                                break;
+                            }
+                        }
+
+                        assert(foundU != foundV);
+                    }
+                });
+            }
+        });
+#endif
     }
 
     /**
