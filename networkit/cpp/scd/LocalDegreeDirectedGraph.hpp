@@ -70,6 +70,11 @@ public:
     node toGlobal(node lu) const { return localToGlobalId[lu]; }
 
     /**
+     * Check if the given node exists.
+     */
+    bool hasNode(node u) const { return globalToLocalId.find(u) != globalToLocalId.end(); }
+
+    /**
      * Ensure that the given global node id exists in the local graph
      *
      * @param u The global node id to check

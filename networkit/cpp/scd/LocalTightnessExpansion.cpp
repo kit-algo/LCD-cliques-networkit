@@ -193,9 +193,11 @@ std::set<node> expandSeedSetInternal(const Graph &g, const std::set<node> &s, do
                 nodeInternalSimilarity[lv] += scoreUv;
 
                 if (inResult[lv]) {
+                    assert(!shell.contains(lv));
                     externalSimilarity -= scoreUv;
                     internalSimilarity += 2 * scoreUv;
                     if (!inShell[lu]) {
+                        assert(!shell.contains(lu));
                         nodeInternalSimilarity[lu] += scoreUv;
                     }
                     nodeExternalSimilarity[lv] -= scoreUv;
@@ -231,11 +233,46 @@ std::set<node> expandSeedSetInternal(const Graph &g, const std::set<node> &s, do
                     }
                 });
         }
+
+#ifndef NDEBUG
+        g.forNodes([&](node u) {
+            if (localGraph.hasNode(u)) {
+                node lu = localGraph.ensureNodeExists(u);
+                if (inShell[lu]) {
+                    double debugUExternalSimilarity = .0;
+                    double debugUInternalSimilarity = .0;
+                    localGraph.forNeighborsWithTrianglesOf(
+                        u, [&](node lv, edgeweight, double triangleSum) {
+                            double scoreUv = 0.0;
+                            double denom = weightedDegree[lv] * weightedDegree[lu];
+                            if (denom > 0.0) {
+                                scoreUv = triangleSum / denom;
+                            }
+
+                            if (inResult[lv]) {
+                                debugUInternalSimilarity += scoreUv;
+                            } else {
+                                debugUExternalSimilarity += scoreUv;
+                            }
+                        });
+
+                    assert(std::abs(debugUExternalSimilarity - nodeExternalSimilarity[lu])
+                           < 0.000001);
+                    assert(std::abs(debugUInternalSimilarity - nodeInternalSimilarity[lu])
+                           < 0.000001);
+                }
+            }
+        });
+#endif
     };
 
     // init community with seed set
     for (node u : s) {
         node lu = localGraph.ensureNodeExists(u);
+        // Ensure that u is not added again during the expansion step
+        if (shell.contains(lu)) {
+            shell.remove(lu);
+        }
         result.insert(u);
         inResult[lu] = true;
         updateShell(u, lu);
@@ -245,6 +282,7 @@ std::set<node> expandSeedSetInternal(const Graph &g, const std::set<node> &s, do
     while (!shell.empty()) {
         node uMax = shell.extract_top();
         node gUMax = localGraph.toGlobal(uMax);
+        assert(result.find(gUMax) == result.end());
 #ifndef NDEBUG
         double internalSimilarityNew = internalSimilarity + 2 * nodeInternalSimilarity[uMax];
         double externalSimilarityNew =
