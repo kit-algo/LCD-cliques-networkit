@@ -9,6 +9,7 @@
 #include <networkit/io/SNAPGraphReader.hpp>
 #include <networkit/scd/ApproximatePageRank.hpp>
 #include <networkit/scd/CliqueDetect.hpp>
+#include <networkit/scd/CombinedSCD.hpp>
 #include <networkit/scd/GCE.hpp>
 #include <networkit/scd/LFMLocal.hpp>
 #include <networkit/scd/LocalT.hpp>
@@ -87,6 +88,30 @@ TEST_F(SelectiveCDGTest, testSCD) {
         double cond = conductance.getQuality(partition, G);
         EXPECT_LT(cond, targetCond);
         INFO("Conductance of ", algIt.first, ": ", cond, "; cluster size: ", cluster.size());
+    }
+
+    for (auto &algIt : algorithms) {
+        CombinedSCD combined(G, *(algorithms.back().second), *(algIt.second));
+        auto cluster = combined.expandOneCommunity(seed);
+
+        // prepare result
+        if (algIt.first != "TwoPhaseL") // TwoPhaseL returns an empty community here
+            EXPECT_GT(cluster.size(), 0u);
+        Partition partition(idBound);
+        partition.allToOnePartition();
+        partition.toSingleton(seed);
+        index id = partition[seed];
+        for (auto entry : cluster) {
+            partition.moveToSubset(id, entry);
+        }
+
+        // evaluate result
+        Conductance conductance;
+        double targetCond = 1.0;
+        double cond = conductance.getQuality(partition, G);
+        if (algIt.first != "TwoPhaseL")
+            EXPECT_LT(cond, targetCond);
+        INFO("Conductance of Clique+", algIt.first, ": ", cond, "; cluster size: ", cluster.size());
     }
 }
 
@@ -197,6 +222,28 @@ TEST_F(SelectiveCDGTest, testSCDWeighted) {
         EXPECT_LT(cond, targetCond);
         INFO("Conductance of ", algIt.first, ": ", cond, "; cluster size: ", cluster.size());
     }
+
+    for (auto &algIt : algorithms) {
+        CombinedSCD combined(G, *(algorithms.back().second), *(algIt.second));
+        auto cluster = combined.expandOneCommunity(seed);
+
+        // prepare result
+        EXPECT_GT(cluster.size(), 0u);
+        Partition partition(idBound);
+        partition.allToOnePartition();
+        partition.toSingleton(seed);
+        index id = partition[seed];
+        for (auto entry : cluster) {
+            partition.moveToSubset(id, entry);
+        }
+
+        // evaluate result
+        Conductance conductance;
+        double targetCond = 1.0;
+        double cond = conductance.getQuality(partition, G);
+        EXPECT_LT(cond, targetCond);
+        INFO("Conductance of Clique+", algIt.first, ": ", cond, "; cluster size: ", cluster.size());
+    }
 }
 
 TEST_F(SelectiveCDGTest, testWeightedCliqueDetect) {
@@ -243,6 +290,24 @@ TEST_F(SelectiveCDGTest, testWeightedCliqueDetect) {
         EXPECT_EQ(result.count(2), 1);
         EXPECT_EQ(result.count(3), 1);
     }
+}
+
+TEST_F(SelectiveCDGTest, debugLTE) {
+    std::string graphPath;
+    std::cout << "[INPUT] METIS graph file path >" << std::endl;
+    std::getline(std::cin, graphPath);
+
+    METISGraphReader reader;
+    Graph G = reader.read(graphPath);
+
+    CliqueDetect cliqueDetect(G);
+    LocalTightnessExpansion lte(G);
+
+    CombinedSCD combined(G, cliqueDetect, lte);
+
+    auto community = combined.expandOneCommunity(718);
+    EXPECT_LT(community.size(), 200);
+    INFO(community);
 }
 
 } /* namespace NetworKit */
